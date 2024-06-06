@@ -2,11 +2,11 @@
 pragma solidity ^0.8.20;
 
 import "./TransferRequest.sol";
-import "../lib/permit2/src/interfaces/ISignatureTransfer.sol";
-import "../lib/permit2/src/interfaces/IPermit2.sol";
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import "./interfaces/ISignatureTransfer.sol";
+import {SignatureTransfer} from "./SignatureTransfer.sol";
 
-contract RequestDispatcher {
+contract RequestDispatcher is SignatureTransfer {
     using TransferRequestLib for TransferRequest;
 
     struct PendingRequest {
@@ -20,8 +20,6 @@ contract RequestDispatcher {
 
     mapping(address => mapping(uint256 => PendingRequest)) public pendingRequests;
 
-    IPermit2 private _permit2;
-
     error InvalidDispatcher();
     error DeadlinePassed();
 
@@ -29,8 +27,7 @@ contract RequestDispatcher {
     event RequestCompleted(address sender, address recipient, uint256 amount, address token);
     event RequestCancelled(address sender, address recipient, uint256 amount, address token);
 
-    constructor(IPermit2 permit2) {
-        _permit2 = permit2;
+    constructor() {
     }
 
     function submitRequest(TransferRequest memory request, bytes memory sig, address recipent) public {
@@ -88,7 +85,7 @@ contract RequestDispatcher {
             revert DeadlinePassed();
         }
 
-        _permit2.permitWitnessTransferFrom(
+        permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
                 permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: request.amount}),
                 nonce: request.nonce,

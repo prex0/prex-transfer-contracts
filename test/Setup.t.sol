@@ -13,7 +13,6 @@ contract TestRequestDispatcher is Test {
 
     bytes32 internal constant _TOKEN_PERMISSIONS_TYPEHASH = keccak256("TokenPermissions(address token,uint256 amount)");
 
-    IPermit2 internal permit2;
     RequestDispatcher internal dispatcher;
     bytes32 DOMAIN_SEPARATOR;
     MockERC20 token;
@@ -22,18 +21,16 @@ contract TestRequestDispatcher is Test {
     address internal sender = vm.addr(privateKey);
 
     function setUp() public virtual {
-        permit2 = IPermit2(deployCode("../test-artifacts/Permit2.sol"));
+        dispatcher = new RequestDispatcher();
 
-        DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
-
-        dispatcher = new RequestDispatcher(permit2);
+        DOMAIN_SEPARATOR = dispatcher.DOMAIN_SEPARATOR();
 
         token = new MockERC20("TestToken", "TestToken");
 
         token.mint(sender, 1e18);
 
         vm.prank(sender);
-        token.approve(address(permit2), 1e20);
+        token.approve(address(dispatcher), 1e20);
     }
 
 

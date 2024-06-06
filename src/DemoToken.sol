@@ -9,12 +9,12 @@ import "../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Perm
 contract DemoToken is ERC20Permit {
     address minter;
 
-    onlyMinter() {
+    modifier onlyMinter() {
         require(msg.sender == minter, "Only minter can call this function");
         _;
     }
 
-    constructor(string memory _name, string memory _symbol, address _minter) ERC20(_name, _symbol) {
+    constructor(string memory _name, string memory _symbol, address _minter) ERC20(_name, _symbol) ERC20Permit(_name) {
         minter = _minter;
     }
 
