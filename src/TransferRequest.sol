@@ -32,20 +32,20 @@ library TransferRequestLib {
         abi.encodePacked("TransferRequest witness)", TOKEN_PERMISSIONS_TYPE, TRANSFER_REQUEST_TYPE)
     );
 
-    /// @notice hash the given order
-    /// @param order the order to hash
-    /// @return the eip-712 order hash
-    function hash(PerpOrder memory order) internal pure returns (bytes32) {
+    /// @notice hash the given request
+    /// @param request the request to hash
+    /// @return the eip-712 request hash
+    function hash(TransferRequest memory request) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(
                 TRANSFER_REQUEST_TYPE_HASH,
-                order.dispatcher,
-                order.sender,
-                order.deadline,
-                order.nonce,
-                order.amount,
-                order.token,
-                order.secretHash
+                request.dispatcher,
+                request.sender,
+                request.deadline,
+                request.nonce,
+                request.amount,
+                request.token,
+                request.secretHash
             )
         );
     }

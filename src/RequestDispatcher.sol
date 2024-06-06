@@ -2,8 +2,9 @@
 pragma solidity ^0.8.20;
 
 import "./TransferRequest.sol";
-import "../lib/permit2/src/ISignatureTransfer.sol";
-import "../lib/permit2/src/IPermit2.sol";
+import "../lib/permit2/src/interfaces/ISignatureTransfer.sol";
+import "../lib/permit2/src/interfaces/IPermit2.sol";
+import "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 contract RequestDispatcher {
     using TransferRequestLib for TransferRequest;
@@ -17,16 +18,16 @@ contract RequestDispatcher {
         uint256 deadline;
     }
 
-    mapping(bytes32 => PendingRequest) public pendingRequests;
+    mapping(address => mapping(uint256 => PendingRequest)) public pendingRequests;
 
     IPermit2 private _permit2;
 
     error InvalidDispatcher();
     error DeadlinePassed();
 
-    event RequestSubmitted(bytes32 id, address sender, address recipient, uint256 amount, address token, uint256 deadline);
-    event RequestCompleted(bytes32 id, address sender, address recipient, uint256 amount, address token);
-    event RequestCancelled(bytes32 id, address sender, address recipient, uint256 amount, address token);
+    event RequestSubmitted(address sender, uint256 nonce, address recipient, uint256 amount, address token, uint256 deadline);
+    event RequestCompleted(address sender, address recipient, uint256 amount, address token);
+    event RequestCancelled(address sender, address recipient, uint256 amount, address token);
 
     constructor(IPermit2 permit2) {
         _permit2 = permit2;
@@ -35,9 +36,11 @@ contract RequestDispatcher {
     function submitRequest(TransferRequest memory request, bytes memory sig, address recipent) public {
         _verifyRequest(request, sig);
 
-        bytes32 id = request.hash();
+        if(pendingRequests[request.sender][request.nonce].amount != 0) {
+            revert("Request already exists");
+        }
 
-        pendingRequests[id] = PendingRequest({
+        pendingRequests[request.sender][request.nonce] = PendingRequest({
             amount: request.amount,
             token: request.token,
             secretHash: request.secretHash,
@@ -46,31 +49,34 @@ contract RequestDispatcher {
             deadline: request.deadline
         });
 
-        emit RequestSubmitted(id, request.sender, recipent, request.amount, request.token, request.deadline);
+        emit RequestSubmitted(request.sender, request.nonce, recipent, request.amount, request.token, request.deadline);
     }
 
-    function completeRequest(bytes32 id, bytes32 secret) public {
-        PendingRequest memory request = pendingRequests[id];
+    function completeRequest(address sender, uint256 nonce, bytes32 secret) public {
+        PendingRequest memory request = pendingRequests[sender][nonce];
 
-        require(keccak256(abi.encodePacked(secret)) == request.secretHash, "Invalid secret");
+        require(keccak256(abi.encode(
+            address(this),
+            secret
+        )) == request.secretHash, "Invalid secret");
 
         ERC20(request.token).transfer(request.recipient, request.amount);
 
-        emit RequestCompleted(id, request.sender, request.recipient, request.amount, request.token);
+        emit RequestCompleted(request.sender, request.recipient, request.amount, request.token);
 
-        delete pendingRequests[id];
+        delete pendingRequests[sender][nonce];
     }
 
-    function cancelRequest(bytes32 id) public {
-        PendingRequest memory request = pendingRequests[id];
+    function cancelRequest(address sender, uint256 nonce) public {
+        PendingRequest memory request = pendingRequests[sender][nonce];
 
         require(block.timestamp > request.deadline, "Request not expired");
 
         ERC20(request.token).transfer(request.sender, request.amount);
 
-        emit RequestCancelled(id, request.sender, request.recipient, request.amount, request.token);
+        emit RequestCancelled(request.sender, request.recipient, request.amount, request.token);
 
-        delete pendingRequests[id];
+        delete pendingRequests[sender][nonce];
     }
 
     function _verifyRequest(TransferRequest memory request, bytes memory sig) internal {
@@ -85,8 +91,8 @@ contract RequestDispatcher {
         _permit2.permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
                 permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: request.amount}),
-                nonce: order.nonce,
-                deadline: order.deadline
+                nonce: request.nonce,
+                deadline: request.deadline
             }),
             ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: request.amount}),
             request.sender,
