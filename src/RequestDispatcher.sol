@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "./TransferRequest.sol";
-import "solmate/tokens/ERC20.sol";
+import "../lib/permit2/lib/solmate/tokens/ERC20.sol";
 import "../lib/permit2/src/interfaces/ISignatureTransfer.sol";
 import "../lib/permit2/src/interfaces/IPermit2.sol";
 
