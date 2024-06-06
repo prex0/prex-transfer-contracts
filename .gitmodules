@@ -10,3 +10,6 @@
 [submodule "lib/solmate"]
 	path = lib/solmate
 	url = https://github.com/transmissions11/solmate
+[submodule "lib/webauthn-sol"]
+	path = lib/webauthn-sol
+	url = https://github.com/base-org/webauthn-sol
