@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.17;
 
 import "./TransferRequest.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import "./interfaces/ISignatureTransfer.sol";
-import {SignatureTransfer} from "./SignatureTransfer.sol";
+import "solmate/tokens/ERC20.sol";
+import "../lib/permit2/src/interfaces/ISignatureTransfer.sol";
+import "../lib/permit2/src/interfaces/IPermit2.sol";
 
-contract RequestDispatcher is SignatureTransfer {
+contract RequestDispatcher {
     using TransferRequestLib for TransferRequest;
 
     struct PendingRequest {
@@ -20,6 +20,8 @@ contract RequestDispatcher is SignatureTransfer {
 
     mapping(address => mapping(uint256 => PendingRequest)) public pendingRequests;
 
+    IPermit2 permit2;
+
     error InvalidDispatcher();
     error DeadlinePassed();
 
@@ -27,7 +29,8 @@ contract RequestDispatcher is SignatureTransfer {
     event RequestCompleted(address sender, address recipient, uint256 amount, address token);
     event RequestCancelled(address sender, address recipient, uint256 amount, address token);
 
-    constructor() {
+    constructor(IPermit2 _permit2) {
+        permit2 = _permit2;
     }
 
     function submitRequest(TransferRequest memory request, bytes memory sig, address recipent) public {
@@ -85,7 +88,7 @@ contract RequestDispatcher is SignatureTransfer {
             revert DeadlinePassed();
         }
 
-        permitWitnessTransferFrom(
+        permit2.permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
                 permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: request.amount}),
                 nonce: request.nonce,

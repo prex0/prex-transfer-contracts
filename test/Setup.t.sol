@@ -4,7 +4,7 @@ import {TransferRequest, TransferRequestLib} from "../src/TransferRequest.sol";
 import "../lib/permit2/src/interfaces/IPermit2.sol";
 import {RequestDispatcher} from "../src/RequestDispatcher.sol";
 import {MockERC20} from "./MockERC20.sol";
-
+import {Permit2} from "../lib/permit2/src/Permit2.sol";
 contract TestRequestDispatcher is Test {
     using TransferRequestLib for TransferRequest;
 
@@ -14,6 +14,7 @@ contract TestRequestDispatcher is Test {
     bytes32 internal constant _TOKEN_PERMISSIONS_TYPEHASH = keccak256("TokenPermissions(address token,uint256 amount)");
 
     RequestDispatcher internal dispatcher;
+    Permit2 permit2;
     bytes32 DOMAIN_SEPARATOR;
     MockERC20 token;
 
@@ -21,9 +22,11 @@ contract TestRequestDispatcher is Test {
     address internal sender = vm.addr(privateKey);
 
     function setUp() public virtual {
-        dispatcher = new RequestDispatcher();
+        permit2 = new Permit2();
 
-        DOMAIN_SEPARATOR = dispatcher.DOMAIN_SEPARATOR();
+        DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
+
+        dispatcher = new RequestDispatcher(permit2);
 
         token = new MockERC20("TestToken", "TestToken");
 
