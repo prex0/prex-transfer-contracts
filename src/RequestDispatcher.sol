@@ -2,9 +2,8 @@
 pragma solidity ^0.8.20;
 
 import "./TransferRequest.sol";
-
-interface IPermit2 {
-}
+import "../lib/permit2/src/ISignatureTransfer.sol";
+import "../lib/permit2/src/IPermit2.sol";
 
 contract RequestDispatcher {
     using TransferRequestLib for TransferRequest;
@@ -19,7 +18,19 @@ contract RequestDispatcher {
     }
 
     mapping(bytes32 => PendingRequest) public pendingRequests;
+
     IPermit2 private _permit2;
+
+    error InvalidDispatcher();
+    error DeadlinePassed();
+
+    event RequestSubmitted(bytes32 id, address sender, address recipient, uint256 amount, address token, uint256 deadline);
+    event RequestCompleted(bytes32 id, address sender, address recipient, uint256 amount, address token);
+    event RequestCancelled(bytes32 id, address sender, address recipient, uint256 amount, address token);
+
+    constructor(IPermit2 permit2) {
+        _permit2 = permit2;
+    }
 
     function submitRequest(TransferRequest memory request, bytes memory sig, address recipent) public {
         _verifyRequest(request, sig);
@@ -32,8 +43,10 @@ contract RequestDispatcher {
             secretHash: request.secretHash,
             sender: request.sender,
             recipient: recipent,
-            deadline: block.timestamp + 1 days
+            deadline: request.deadline
         });
+
+        emit RequestSubmitted(id, request.sender, recipent, request.amount, request.token, request.deadline);
     }
 
     function completeRequest(bytes32 id, bytes32 secret) public {
@@ -42,6 +55,8 @@ contract RequestDispatcher {
         require(keccak256(abi.encodePacked(secret)) == request.secretHash, "Invalid secret");
 
         ERC20(request.token).transfer(request.recipient, request.amount);
+
+        emit RequestCompleted(id, request.sender, request.recipient, request.amount, request.token);
 
         delete pendingRequests[id];
     }
@@ -53,12 +68,14 @@ contract RequestDispatcher {
 
         ERC20(request.token).transfer(request.sender, request.amount);
 
+        emit RequestCancelled(id, request.sender, request.recipient, request.amount, request.token);
+
         delete pendingRequests[id];
     }
 
     function _verifyRequest(TransferRequest memory request, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
-            revert InvalidMarket();
+            revert InvalidDispatcher();
         }
 
         if (block.timestamp > request.deadline) {
