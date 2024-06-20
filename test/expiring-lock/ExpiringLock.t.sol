@@ -26,9 +26,14 @@ contract TestExpiring is TestTransferRequestDispatcher {
 
         vm.startPrank(sender);
 
-        token.approve(address(expiringDispatcher), 100);
+        token.approve(address(expiringDispatcher), 110);
         expiringDispatcher.submit(request);
 
+        expiringDispatcher.deposit(request.hash(), 10);
         vm.stopPrank();
+
+        expiringDispatcher.distribute(request.hash(), recipient);
+
+        assertEq(token.balanceOf(recipient), 1);
     }
 }

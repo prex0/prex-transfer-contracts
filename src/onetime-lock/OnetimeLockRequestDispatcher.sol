@@ -5,6 +5,7 @@ import "./OnetimeLockRequest.sol";
 import "permit2/lib/solmate/src/tokens/ERC20.sol";
 import "permit2/src/interfaces/ISignatureTransfer.sol";
 import "permit2/src/interfaces/IPermit2.sol";
+import "../libraries/SecretUtil.sol";
 
 contract OnetimeLockRequestDispatcher {
     using OnetimeLockRequestLib for OnetimeLockRequest;
@@ -27,6 +28,8 @@ contract OnetimeLockRequestDispatcher {
     error Expired();
     error RequestNotSubmitted();
     error RecipientAlreadySet();
+    error RecipientNotSet();
+    error InvalidSecret();
 
     event RequestSubmitted(bytes32 id, address sender, address token, uint256 amount, uint256 expiry);
     event RecipientUpdated(bytes32 id, address recipient);
@@ -69,8 +72,8 @@ contract OnetimeLockRequestDispatcher {
     function setRecipient(bytes32 id, bytes32 secret, address recipient) public onlyFacilitator {
         PendingRequest storage request = pendingRequests[id];
 
-        if (keccak256(abi.encode(address(this), secret)) != request.secretHash1) {
-            revert("Invalid secret");
+        if (SecretUtil.hashSecret(secret, 1) != request.secretHash1) {
+            revert InvalidSecret();
         }
 
         if (request.recipient != address(0)) {
@@ -93,10 +96,12 @@ contract OnetimeLockRequestDispatcher {
     function completeRequest(bytes32 id, bytes32 secret) public onlyFacilitator {
         PendingRequest storage request = pendingRequests[id];
 
-        require(keccak256(abi.encode(address(this), secret)) == request.secretHash2, "Invalid secret");
+        if (SecretUtil.hashSecret(secret, 2) != request.secretHash2) {
+            revert InvalidSecret();
+        }
 
         if (request.recipient == address(0)) {
-            revert("Recipient not set");
+            revert RecipientNotSet();
         }
 
         if (request.expiry == 0) {

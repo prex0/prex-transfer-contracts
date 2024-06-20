@@ -16,8 +16,10 @@ contract TestTransferRequestDispatcher is TestUtils {
 
     uint256 internal privateKey = 12345;
     uint256 internal privateKey2 = 32156;
+    uint256 internal recipientKey = 1230321;
     address internal sender = vm.addr(privateKey);
     address internal from2 = vm.addr(privateKey2);
+    address internal recipient = vm.addr(recipientKey);
 
     function setUp() public virtual {
         permit2 = new Permit2();
