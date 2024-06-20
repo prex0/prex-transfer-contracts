@@ -31,7 +31,7 @@ contract OnetimeLockRequestDispatcher {
     error RecipientNotSet();
     error InvalidSecret();
 
-    event RequestSubmitted(bytes32 id, address sender, address token, uint256 amount, uint256 expiry);
+    event RequestSubmitted(bytes32 id, address sender, address token, uint256 amount, uint256 expiry, bytes metadata);
     event RecipientUpdated(bytes32 id, address recipient);
     event RequestCompleted(bytes32 id);
     event RequestCancelled(bytes32 id);
@@ -66,7 +66,7 @@ contract OnetimeLockRequestDispatcher {
 
         ERC20(request.token).transferFrom(msg.sender, address(this), request.amount);
 
-        emit RequestSubmitted(id, msg.sender, request.token, request.amount, request.expiry);
+        emit RequestSubmitted(id, msg.sender, request.token, request.amount, request.expiry, request.metadata);
     }
 
     function setRecipient(bytes32 id, bytes32 secret, address recipient) public onlyFacilitator {

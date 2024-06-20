@@ -34,7 +34,8 @@ contract TestTransferWithSecretRequest is Test, SignatureTransfer {
             nonce: 0,
             amount: 100,
             token: address(3),
-            secretHash: secretHash
+            secretHash: secretHash,
+            metadata: ""
         });
 
         assertEq(request.dispatcher, address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496));
@@ -56,7 +57,7 @@ contract TestTransferWithSecretRequest is Test, SignatureTransfer {
 
         assertEq(
             aaa.aaa(permit, request.hash(), TransferWithSecretRequestLib.PERMIT2_ORDER_TYPE),
-            bytes32(0xf636755d70b2b4750e3b262a6db2a0f43b563f7caf4d070189e81e027fae6f63)
+            bytes32(0x08dd4131ad58faeaec6e3f8b93f2420a28d1e165811c67c5d37560c114be6e88)
         );
     }
 }

@@ -26,7 +26,8 @@ contract TestOnetime is TestTransferRequestDispatcher {
             token: address(token),
             secretHash1: SecretUtil.hashSecret(address(onetimeDispatcher), secret, 1),
             secretHash2: SecretUtil.hashSecret(address(onetimeDispatcher), secret, 2),
-            expiry: block.timestamp + 1000
+            expiry: block.timestamp + 1000,
+            metadata: ""
         });
 
         vm.startPrank(sender);

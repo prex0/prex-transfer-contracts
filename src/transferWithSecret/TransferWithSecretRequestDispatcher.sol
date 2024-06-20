@@ -26,7 +26,9 @@ contract TransferWithSecretRequestDispatcher {
     error InvalidDispatcher();
     error DeadlinePassed();
 
-    event RequestSubmitted(bytes32 id, address sender, address recipient, address token, uint256 amount);
+    event RequestSubmitted(
+        bytes32 id, address sender, address recipient, address token, uint256 amount, bytes metadata
+    );
     event RequestCompleted(bytes32 id);
     event RequestCancelled(bytes32 id);
 
@@ -61,7 +63,7 @@ contract TransferWithSecretRequestDispatcher {
             deadline: request.deadline
         });
 
-        emit RequestSubmitted(id, request.sender, recipent, request.token, request.amount);
+        emit RequestSubmitted(id, request.sender, recipent, request.token, request.amount, request.metadata);
     }
 
     function completeRequest(bytes32 id, bytes32 secret) public {

@@ -19,7 +19,8 @@ contract TestSubmit is TestRequestDispatcher {
             nonce: 0,
             amount: 100,
             token: address(token),
-            secretHash: keccak256(abi.encode(address(dispatcher), secret))
+            secretHash: keccak256(abi.encode(address(dispatcher), secret)),
+            metadata: ""
         });
 
         bytes memory sig = _sign(request, privateKey);

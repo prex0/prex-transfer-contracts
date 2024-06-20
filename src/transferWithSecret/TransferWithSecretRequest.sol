@@ -9,6 +9,7 @@ struct TransferWithSecretRequest {
     uint256 amount;
     address token;
     bytes32 secretHash;
+    bytes metadata;
 }
 
 /// @notice helpers for handling TransferRequest
@@ -21,7 +22,8 @@ library TransferWithSecretRequestLib {
         "uint256 nonce,",
         "uint256 amount,",
         "address token,",
-        "bytes32 secretHash)"
+        "bytes32 secretHash",
+        "bytes metadata)"
     );
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec
@@ -46,7 +48,8 @@ library TransferWithSecretRequestLib {
                 request.nonce,
                 request.amount,
                 request.token,
-                request.secretHash
+                request.secretHash,
+                keccak256(request.metadata)
             )
         );
     }

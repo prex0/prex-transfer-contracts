@@ -8,6 +8,7 @@ struct OnetimeLockRequest {
     bytes32 secretHash1;
     bytes32 secretHash2;
     uint256 expiry;
+    bytes metadata;
 }
 
 library OnetimeLockRequestLib {
@@ -17,7 +18,8 @@ library OnetimeLockRequestLib {
         "address token,",
         "bytes32 secretHash1,",
         "bytes32 secretHash2,",
-        "uint256 expiry)"
+        "uint256 expiry",
+        "bytes metadata)"
     );
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec
@@ -36,7 +38,8 @@ library OnetimeLockRequestLib {
                 request.token,
                 request.secretHash1,
                 request.secretHash2,
-                request.expiry
+                request.expiry,
+                keccak256(request.metadata)
             )
         );
     }
