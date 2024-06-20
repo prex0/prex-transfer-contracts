@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import "../lib/permit2/lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @notice Mock of ERC20 contract

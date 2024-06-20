@@ -4,14 +4,14 @@ pragma solidity ^0.8.13;
 import "./Setup.t.sol";
 
 contract TestSubmit is TestRequestDispatcher {
-    using TransferRequestLib for TransferRequest;
+    using TransferWithSecretRequestLib for TransferWithSecretRequest;
 
-    function setUp() public virtual override(TestRequestDispatcher){
+    function setUp() public virtual override(TestRequestDispatcher) {
         super.setUp();
     }
 
     function testSubmit() public {
-        TransferRequest memory request = TransferRequest({
+        TransferWithSecretRequest memory request = TransferWithSecretRequest({
             dispatcher: address(dispatcher),
             sender: sender,
             deadline: block.timestamp + 1000,
@@ -25,16 +25,9 @@ contract TestSubmit is TestRequestDispatcher {
 
         dispatcher.submitRequest(request, sig, address(this));
 
-        (
-            uint256 amount,
-            address token,
-            bytes32 secretHash,
-            address sender,
-            address recipient,
-            uint256 deadline
-        ) = dispatcher.pendingRequests(request.sender, request.nonce);
+        (uint256 amount, address token, bytes32 secretHash, address sender, address recipient, uint256 deadline) =
+            dispatcher.pendingRequests(request.hash());
 
         assertEq(amount, 100);
     }
-
 }
