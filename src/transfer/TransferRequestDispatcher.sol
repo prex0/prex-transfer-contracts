@@ -10,36 +10,18 @@ import "permit2/src/interfaces/IPermit2.sol";
 contract TransferRequestDispatcher is IRequestDispatcher {
     using TransferRequestLib for TransferRequest;
 
-    struct PendingRequest {
-        uint256 amount;
-        address token;
-        bytes32 secretHash;
-        address sender;
-        address recipient;
-        uint256 deadline;
-    }
-
     IPermit2 permit2;
-    address public facilitator;
 
-    event Transfered(address token, address from, address to, uint256 amount, uint256 nonce, uint256 deadline);
+    event Transferred(address token, address from, address to, uint256 amount, bytes metadata);
 
-    modifier onlyFacilitator() {
-        require(msg.sender == facilitator, "Only facilitator");
-        _;
-    }
-
-    constructor(address _permit2, address _facilitator) {
+    constructor(address _permit2) {
         permit2 = IPermit2(_permit2);
-        facilitator = _facilitator;
     }
 
-    function submitTransfer(TransferRequest memory request, bytes memory sig) public onlyFacilitator {
+    function submitTransfer(TransferRequest memory request, bytes memory sig, bytes memory metadata) public {
         _verifyRequest(request, sig);
 
-        emit Transfered(
-            request.token, request.sender, request.recipient, request.amount, request.nonce, request.deadline
-        );
+        emit Transferred(request.token, request.sender, request.recipient, request.amount, metadata);
     }
 
     function _verifyRequest(TransferRequest memory request, bytes memory sig) internal {

@@ -37,7 +37,7 @@ contract TestOnetime is TestTransferRequestDispatcher {
 
         vm.stopPrank();
 
-        onetimeDispatcher.setRecipient(request.hash(), secret, recipient);
+        onetimeDispatcher.setRecipient(request.hash(), secret, recipient, "");
 
         onetimeDispatcher.completeRequest(request.hash(), secret);
 

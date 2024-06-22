@@ -6,11 +6,19 @@ struct ExpiringLockRequest {
     uint256 amountPerWithdrawal;
     address token;
     uint256 expiry;
+    bool isLimitedByAddress;
+    bytes metadata;
 }
 
 library ExpiringLockRequestLib {
     bytes internal constant EXPIRING_LOCK_REQUEST_TYPE_S = abi.encodePacked(
-        "ExpiringLockRequest(", "uint256 amount,", "uint256 amountPerWithdrawal,", "address token,", "uint256 expiry)"
+        "ExpiringLockRequest(",
+        "uint256 amount,",
+        "uint256 amountPerWithdrawal,",
+        "address token,",
+        "uint256 expiry,",
+        "bool isLimitedByAddress,",
+        "bytes metadata)"
     );
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec
@@ -28,7 +36,9 @@ library ExpiringLockRequestLib {
                 request.amount,
                 request.amountPerWithdrawal,
                 request.token,
-                request.expiry
+                request.expiry,
+                request.isLimitedByAddress,
+                keccak256(request.metadata)
             )
         );
     }

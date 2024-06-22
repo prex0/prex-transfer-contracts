@@ -25,7 +25,7 @@ contract TestSubmitTransfer is TestTransferRequestDispatcher {
 
         uint256 balance0 = token.balanceOf(address(this));
 
-        dispatcher.submitTransfer(request, sig);
+        dispatcher.submitTransfer(request, sig, "");
 
         uint256 balance1 = token.balanceOf(address(this));
 

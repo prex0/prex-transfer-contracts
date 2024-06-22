@@ -29,6 +29,6 @@ contract TestSubmit is TestRequestDispatcher {
     }
 
     function testComplete() public {
-        dispatcher.completeRequest(request.hash(), secret);
+        dispatcher.completeRequest(request.hash(), secret, "");
     }
 }

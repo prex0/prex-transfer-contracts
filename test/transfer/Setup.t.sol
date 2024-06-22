@@ -26,7 +26,7 @@ contract TestTransferRequestDispatcher is TestUtils {
 
         DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
 
-        dispatcher = new TransferRequestDispatcher(address(permit2), address(this));
+        dispatcher = new TransferRequestDispatcher(address(permit2));
 
         token = new MockERC20("TestToken", "TestToken");
 

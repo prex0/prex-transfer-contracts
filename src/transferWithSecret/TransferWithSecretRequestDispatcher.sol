@@ -29,7 +29,7 @@ contract TransferWithSecretRequestDispatcher {
     event RequestSubmitted(
         bytes32 id, address sender, address recipient, address token, uint256 amount, bytes metadata
     );
-    event RequestCompleted(bytes32 id);
+    event RequestCompleted(bytes32 id, bytes metadata);
     event RequestCancelled(bytes32 id);
 
     modifier onlyFacilitator() {
@@ -66,7 +66,7 @@ contract TransferWithSecretRequestDispatcher {
         emit RequestSubmitted(id, request.sender, recipent, request.token, request.amount, request.metadata);
     }
 
-    function completeRequest(bytes32 id, bytes32 secret) public {
+    function completeRequest(bytes32 id, bytes32 secret, bytes memory metadata) public {
         PendingRequest storage request = pendingRequests[id];
 
         require(keccak256(abi.encode(address(this), secret)) == request.secretHash, "Invalid secret");
@@ -77,7 +77,7 @@ contract TransferWithSecretRequestDispatcher {
 
         ERC20(request.token).transfer(request.recipient, amount);
 
-        emit RequestCompleted(id);
+        emit RequestCompleted(id, metadata);
     }
 
     function cancelRequest(bytes32 id) public {

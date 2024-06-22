@@ -30,7 +30,7 @@ contract DeployRequestDispatcher is Script {
     {
         vm.startBroadcast();
 
-        dispatcher1 = new TransferRequestDispatcher{salt: SALT1}(PERMIT2, FACILITATOR);
+        dispatcher1 = new TransferRequestDispatcher{salt: SALT1}(PERMIT2);
         dispatcher2 = new TransferWithSecretRequestDispatcher{salt: SALT2}(PERMIT2, FACILITATOR);
         dispatcher3 = new OnetimeLockRequestDispatcher{salt: SALT3}(FACILITATOR);
         dispatcher4 = new ExpiringLockRequestDispatcher{salt: SALT4}(FACILITATOR);

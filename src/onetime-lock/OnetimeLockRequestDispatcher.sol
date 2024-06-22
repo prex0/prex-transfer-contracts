@@ -25,14 +25,14 @@ contract OnetimeLockRequestDispatcher {
     address public facilitator;
 
     error RequestAlreadyExists();
-    error Expired();
+    error RequestExpired();
     error RequestNotSubmitted();
     error RecipientAlreadySet();
     error RecipientNotSet();
     error InvalidSecret();
 
     event RequestSubmitted(bytes32 id, address sender, address token, uint256 amount, uint256 expiry, bytes metadata);
-    event RecipientUpdated(bytes32 id, address recipient);
+    event RecipientUpdated(bytes32 id, address recipient, bytes metadata);
     event RequestCompleted(bytes32 id);
     event RequestCancelled(bytes32 id);
 
@@ -69,7 +69,10 @@ contract OnetimeLockRequestDispatcher {
         emit RequestSubmitted(id, msg.sender, request.token, request.amount, request.expiry, request.metadata);
     }
 
-    function setRecipient(bytes32 id, bytes32 secret, address recipient) public onlyFacilitator {
+    function setRecipient(bytes32 id, bytes32 secret, address recipient, bytes memory metadata)
+        public
+        onlyFacilitator
+    {
         PendingRequest storage request = pendingRequests[id];
 
         if (SecretUtil.hashSecret(secret, 1) != request.secretHash1) {
@@ -85,15 +88,15 @@ contract OnetimeLockRequestDispatcher {
         }
 
         if (request.expiry < block.timestamp) {
-            revert Expired();
+            revert RequestExpired();
         }
 
         request.recipient = recipient;
 
-        emit RecipientUpdated(id, recipient);
+        emit RecipientUpdated(id, recipient, metadata);
     }
 
-    function completeRequest(bytes32 id, bytes32 secret) public onlyFacilitator {
+    function completeRequest(bytes32 id, bytes32 secret) public {
         PendingRequest storage request = pendingRequests[id];
 
         if (SecretUtil.hashSecret(secret, 2) != request.secretHash2) {
@@ -109,7 +112,7 @@ contract OnetimeLockRequestDispatcher {
         }
 
         if (request.expiry < block.timestamp) {
-            revert Expired();
+            revert RequestExpired();
         }
 
         uint256 amount = request.amount;
