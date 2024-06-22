@@ -22,6 +22,8 @@ contract OnetimeLockRequestDispatcher {
 
     mapping(bytes32 => PendingRequest) public pendingRequests;
 
+    uint256 private constant MAX_EXPIRY = 180 days;
+
     address public facilitator;
 
     error RequestAlreadyExists();
@@ -30,6 +32,7 @@ contract OnetimeLockRequestDispatcher {
     error RecipientAlreadySet();
     error RecipientNotSet();
     error InvalidSecret();
+    error CallerIsNotSenderOrFacilitator();
 
     event RequestSubmitted(bytes32 id, address sender, address token, uint256 amount, uint256 expiry, bytes metadata);
     event RecipientUpdated(bytes32 id, address recipient, bytes metadata);
@@ -53,6 +56,7 @@ contract OnetimeLockRequestDispatcher {
         }
 
         require(request.expiry > 0);
+        require(request.expiry <= block.timestamp + MAX_EXPIRY);
 
         pendingRequests[id] = PendingRequest({
             amount: request.amount,
@@ -128,6 +132,10 @@ contract OnetimeLockRequestDispatcher {
         PendingRequest storage request = pendingRequests[id];
 
         require(block.timestamp > request.expiry, "Request not expired");
+
+        if (request.sender != msg.sender && facilitator != msg.sender) {
+            revert CallerIsNotSenderOrFacilitator();
+        }
 
         uint256 amount = request.amount;
 
