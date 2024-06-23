@@ -6,7 +6,7 @@ library SecretUtil {
         return hashSecret(address(this), secret, version);
     }
 
-    function hashSecret(address verifier, bytes32 secret, uint256 version) internal view returns (bytes32) {
+    function hashSecret(address verifier, bytes32 secret, uint256 version) internal pure returns (bytes32) {
         return keccak256(abi.encode(verifier, version, secret));
     }
 }

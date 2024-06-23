@@ -9,6 +9,7 @@ struct TransferRequest {
     uint256 nonce;
     uint256 amount;
     address token;
+    bytes metadata;
 }
 
 /// @notice helpers for handling TransferRequest
@@ -21,7 +22,8 @@ library TransferRequestLib {
         "uint256 deadline,",
         "uint256 nonce,",
         "uint256 amount,",
-        "address token)"
+        "address token,",
+        "bytes metadata)"
     );
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec
@@ -46,7 +48,8 @@ library TransferRequestLib {
                 request.deadline,
                 request.nonce,
                 request.amount,
-                request.token
+                request.token,
+                keccak256(request.metadata)
             )
         );
     }

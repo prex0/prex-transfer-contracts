@@ -43,4 +43,14 @@ library OnetimeLockRequestLib {
             )
         );
     }
+
+    function getId(OnetimeLockRequest memory request) internal view returns (bytes32) {
+        return keccak256(
+            abi.encode(
+                block.chainid,
+                address(this),
+                hash(request)
+            )
+        );
+    }
 }

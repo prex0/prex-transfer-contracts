@@ -18,14 +18,15 @@ contract TestSubmitTransfer is TestTransferRequestDispatcher {
             deadline: block.timestamp + 1000,
             nonce: 0,
             amount: 100,
-            token: address(token)
+            token: address(token),
+            metadata: ""
         });
 
         bytes memory sig = _sign(request, privateKey);
 
         uint256 balance0 = token.balanceOf(address(this));
 
-        dispatcher.submitTransfer(request, sig, "");
+        dispatcher.submitTransfer(request, sig);
 
         uint256 balance1 = token.balanceOf(address(this));
 

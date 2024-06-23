@@ -9,12 +9,7 @@ import {OnetimeLockRequestDispatcher} from "src/onetime-lock/OnetimeLockRequestD
 import {ExpiringLockRequestDispatcher} from "src/expiring-lock/ExpiringLockRequestDispatcher.sol";
 
 contract DeployRequestDispatcher is Script {
-    bytes32 constant SALT1 = bytes32(uint256(0x2322330000000000005300850000000000000000d3af2963da51c10215740000));
-    bytes32 constant SALT2 = bytes32(uint256(0x1122330000000000005300850000000000000d3b000f29632a51c10215720000));
-    bytes32 constant SALT3 = bytes32(uint256(0x11220000000005300330008500000000d3af2965da5100000000c10215720000));
-    bytes32 constant SALT4 = bytes32(uint256(0x1122330000000000005300850000000da51c1021500000000051af2963720000));
-
-    address public PERMIT2 = address(0x2b1796de5d6B3382038c7607b021886a35fAc188);
+    address public PERMIT2 = address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
     address public FACILITATOR = address(0x51B89C499F3038756Eff64a0EF52d753147EAd75);
 
     function setUp() public {}
@@ -30,10 +25,10 @@ contract DeployRequestDispatcher is Script {
     {
         vm.startBroadcast();
 
-        dispatcher1 = new TransferRequestDispatcher{salt: SALT1}(PERMIT2);
-        dispatcher2 = new TransferWithSecretRequestDispatcher{salt: SALT2}(PERMIT2, FACILITATOR);
-        dispatcher3 = new OnetimeLockRequestDispatcher{salt: SALT3}(FACILITATOR);
-        dispatcher4 = new ExpiringLockRequestDispatcher{salt: SALT4}(FACILITATOR);
+        dispatcher1 = new TransferRequestDispatcher{salt: 0x0000000000000000000000000000000000000000000000000000000000000777}(PERMIT2);
+        dispatcher2 = new TransferWithSecretRequestDispatcher{salt: 0x0000000000000000000000000000000000000000000000000000000000000777}(PERMIT2, FACILITATOR);
+        dispatcher3 = new OnetimeLockRequestDispatcher{salt: 0x0000000000000000000000000000000000000000000000000000000000000777}(FACILITATOR);
+        dispatcher4 = new ExpiringLockRequestDispatcher{salt: 0x0000000000000000000000000000000000000000000000000000000000000777}(FACILITATOR);
 
         console2.log("TransferRequestDispatcher Deployed:", address(dispatcher1));
         console2.log("TransferWithSecretRequestDispatcher Deployed:", address(dispatcher2));

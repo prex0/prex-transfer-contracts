@@ -18,10 +18,10 @@ contract TransferRequestDispatcher is IRequestDispatcher {
         permit2 = IPermit2(_permit2);
     }
 
-    function submitTransfer(TransferRequest memory request, bytes memory sig, bytes memory metadata) public {
+    function submitTransfer(TransferRequest memory request, bytes memory sig) public {
         _verifyRequest(request, sig);
 
-        emit Transferred(request.token, request.sender, request.recipient, request.amount, metadata);
+        emit Transferred(request.token, request.sender, request.recipient, request.amount, request.metadata);
     }
 
     function _verifyRequest(TransferRequest memory request, bytes memory sig) internal {

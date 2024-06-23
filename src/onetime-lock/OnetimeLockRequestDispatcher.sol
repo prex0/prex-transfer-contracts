@@ -49,7 +49,7 @@ contract OnetimeLockRequestDispatcher {
     }
 
     function submitRequest(OnetimeLockRequest memory request) public {
-        bytes32 id = request.hash();
+        bytes32 id = request.getId();
 
         if (pendingRequests[id].expiry > 0) {
             revert RequestAlreadyExists();
@@ -144,5 +144,9 @@ contract OnetimeLockRequestDispatcher {
         ERC20(request.token).transfer(request.sender, amount);
 
         emit RequestCancelled(id);
+    }
+
+    function getRequestId(OnetimeLockRequest memory request) external view returns (bytes32) {
+        return request.getId();
     }
 }

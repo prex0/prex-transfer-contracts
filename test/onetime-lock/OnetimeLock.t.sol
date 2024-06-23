@@ -37,9 +37,9 @@ contract TestOnetime is TestTransferRequestDispatcher {
 
         vm.stopPrank();
 
-        onetimeDispatcher.setRecipient(request.hash(), secret, recipient, "");
+        onetimeDispatcher.setRecipient(onetimeDispatcher.getRequestId(request), secret, recipient, "");
 
-        onetimeDispatcher.completeRequest(request.hash(), secret);
+        onetimeDispatcher.completeRequest(onetimeDispatcher.getRequestId(request), secret);
 
         assertEq(token.balanceOf(recipient), 100);
     }
