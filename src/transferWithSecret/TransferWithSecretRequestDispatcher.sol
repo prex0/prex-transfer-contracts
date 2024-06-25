@@ -6,6 +6,11 @@ import "permit2/lib/solmate/src/tokens/ERC20.sol";
 import "permit2/src/interfaces/ISignatureTransfer.sol";
 import "permit2/src/interfaces/IPermit2.sol";
 
+/**
+ * @notice The TransferWithSecretRequestDispatcher contract facilitates secure token transfers using secret requests.
+ * It allows the creation, completion, and cancellation of transfer requests that are authorized through a secret verification mechanism.
+ * This contract integrates with the Permit2 library to handle ERC20 token transfers securely and efficiently.
+ */
 contract TransferWithSecretRequestDispatcher {
     using TransferWithSecretRequestLib for TransferWithSecretRequest;
 
@@ -42,6 +47,9 @@ contract TransferWithSecretRequestDispatcher {
         facilitator = _facilitator;
     }
 
+    /**
+     * @notice Submits a new transfer request.
+     */
     function submitRequest(TransferWithSecretRequest memory request, bytes memory sig, address recipent)
         public
         onlyFacilitator
@@ -66,6 +74,9 @@ contract TransferWithSecretRequestDispatcher {
         emit RequestSubmitted(id, request.sender, recipent, request.token, request.amount, request.metadata);
     }
 
+    /**
+     * @notice Completes a transfer request if the correct secret is provided.
+     */
     function completeRequest(bytes32 id, bytes32 secret, bytes memory metadata) public {
         PendingRequest storage request = pendingRequests[id];
 
@@ -80,6 +91,9 @@ contract TransferWithSecretRequestDispatcher {
         emit RequestCompleted(id, metadata);
     }
 
+    /**
+     * @notice Cancels a transfer request if the deadline has passed.
+     */
     function cancelRequest(bytes32 id) public {
         PendingRequest storage request = pendingRequests[id];
 
