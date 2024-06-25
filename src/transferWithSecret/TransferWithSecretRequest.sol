@@ -22,7 +22,7 @@ library TransferWithSecretRequestLib {
         "uint256 nonce,",
         "uint256 amount,",
         "address token,",
-        "bytes32 secretHash",
+        "bytes32 secretHash,",
         "bytes metadata)"
     );
 
