@@ -11,6 +11,9 @@ contract TestSubmit is TestRequestDispatcher {
     }
 
     function testSubmit() public {
+        uint256 tmpPrivKey = 11111000002;
+        address tmpPublicKey = vm.addr(tmpPrivKey);
+
         TransferWithSecretRequest memory request = TransferWithSecretRequest({
             dispatcher: address(dispatcher),
             sender: sender,
@@ -18,17 +21,26 @@ contract TestSubmit is TestRequestDispatcher {
             nonce: 0,
             amount: 100,
             token: address(token),
-            secretHash: keccak256(abi.encodePacked("secret")),
+            publicKey: tmpPublicKey,
             metadata: ""
         });
 
         bytes memory sig = _sign(request, privateKey);
 
-        dispatcher.submitRequest(request, sig, address(this));
+        TransferWithSecretRequestDispatcher.RecipientData memory recipientData = TransferWithSecretRequestDispatcher.RecipientData({
+            recipient: from2,
+            sig: _signMessage(
+                tmpPrivKey,
+                keccak256(abi.encode(address(dispatcher), request.nonce, from2))
+            ),
+            metadata: ""
+        });
 
-        (uint256 amount, address token, bytes32 secretHash, address sender, address recipient, uint256 deadline) =
-            dispatcher.pendingRequests(request.hash());
+        uint256 amountBefore = token.balanceOf(from2);
+        dispatcher.submitRequest(request, sig, recipientData);
+        uint256 amountAfter = token.balanceOf(from2);
 
-        assertEq(amount, 100);
+
+        assertEq(amountAfter - amountBefore, 100);
     }
 }

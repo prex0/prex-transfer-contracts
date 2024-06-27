@@ -42,4 +42,16 @@ contract TestUtils is Test {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, msgHash);
         sig = bytes.concat(r, s, bytes1(v));
     }
+
+    function _signMessage(
+        uint256 privateKey,
+        bytes32 witness
+    ) internal pure returns (bytes memory sig) {
+        bytes32 msgHash = ECDSA.toEthSignedMessageHash(
+            witness
+        );
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, msgHash);
+        sig = bytes.concat(r, s, bytes1(v));
+    }
 }

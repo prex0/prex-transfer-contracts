@@ -8,7 +8,7 @@ struct TransferWithSecretRequest {
     uint256 nonce;
     uint256 amount;
     address token;
-    bytes32 secretHash;
+    address publicKey;
     bytes metadata;
 }
 
@@ -22,7 +22,7 @@ library TransferWithSecretRequestLib {
         "uint256 nonce,",
         "uint256 amount,",
         "address token,",
-        "bytes32 secretHash,",
+        "address publicKey,",
         "bytes metadata)"
     );
 
@@ -48,7 +48,7 @@ library TransferWithSecretRequestLib {
                 request.nonce,
                 request.amount,
                 request.token,
-                request.secretHash,
+                request.publicKey,
                 keccak256(request.metadata)
             )
         );
