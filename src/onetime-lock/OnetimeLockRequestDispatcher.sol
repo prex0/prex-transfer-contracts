@@ -82,13 +82,13 @@ contract OnetimeLockRequestDispatcher {
             amount: request.amount,
             token: request.token,
             publicKey: request.publicKey,
-            sender: msg.sender,
+            sender: request.sender,
             nonce: request.nonce,
             expiry: request.deadline,
             status: RequestStatus.Pending
         });
 
-        emit RequestSubmitted(id, request.token, msg.sender, request.amount, request.deadline, request.metadata);
+        emit RequestSubmitted(id, request.token, request.sender, request.amount, request.deadline, request.metadata);
     }
 
     function completeRequest(bytes32 id, RecipientData memory recipientData) public {
