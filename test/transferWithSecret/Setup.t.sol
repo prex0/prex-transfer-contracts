@@ -41,6 +41,7 @@ contract TestRequestDispatcher is TestUtils {
     function _sign(TransferWithSecretRequest memory request, uint256 fromPrivateKey)
         internal
         view
+        virtual
         returns (bytes memory)
     {
         bytes32 witness = request.hash();

@@ -27,19 +27,16 @@ contract TestSubmit is TestRequestDispatcher {
 
         bytes memory sig = _sign(request, privateKey);
 
-        TransferWithSecretRequestDispatcher.RecipientData memory recipientData = TransferWithSecretRequestDispatcher.RecipientData({
+        TransferWithSecretRequestDispatcher.RecipientData memory recipientData = TransferWithSecretRequestDispatcher
+            .RecipientData({
             recipient: from2,
-            sig: _signMessage(
-                tmpPrivKey,
-                keccak256(abi.encode(address(dispatcher), request.nonce, from2))
-            ),
+            sig: _signMessage(tmpPrivKey, keccak256(abi.encode(address(dispatcher), request.nonce, from2))),
             metadata: ""
         });
 
         uint256 amountBefore = token.balanceOf(from2);
         dispatcher.submitRequest(request, sig, recipientData);
         uint256 amountAfter = token.balanceOf(from2);
-
 
         assertEq(amountAfter - amountBefore, 100);
     }

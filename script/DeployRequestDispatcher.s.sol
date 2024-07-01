@@ -17,18 +17,20 @@ contract DeployRequestDispatcher is Script {
     function run()
         public
         returns (
-            TransferRequestDispatcher dispatcher1,
+            //TransferRequestDispatcher dispatcher1,
             TransferWithSecretRequestDispatcher dispatcher2
         )
     {
         vm.startBroadcast();
 
-        dispatcher1 = new TransferRequestDispatcher{salt: 0x0000000000000000000000000000000000000000000000000000000000077777}(PERMIT2);
-        dispatcher2 = new TransferWithSecretRequestDispatcher{salt: 0x0000000000000000000000000000000000000000000000000000000000077777}(PERMIT2, FACILITATOR);
+        //dispatcher1 = new TransferRequestDispatcher{salt: 0x0000000000000000000000000000000000000000000000000000000000077777}(PERMIT2);
+        dispatcher2 = new TransferWithSecretRequestDispatcher{
+            salt: 0x0000000000000000000000000000000000000000000000000000000000077777
+        }(PERMIT2, FACILITATOR);
         //dispatcher3 = new OnetimeLockRequestDispatcher{salt: 0x0000000000000000000000000000000000000000000000000000000000000777}(FACILITATOR);
         //dispatcher4 = new ExpiringLockRequestDispatcher{salt: 0x0000000000000000000000000000000000000000000000000000000000000777}(FACILITATOR);
 
-        console2.log("TransferRequestDispatcher Deployed:", address(dispatcher1));
+        //console2.log("TransferRequestDispatcher Deployed:", address(dispatcher1));
         console2.log("TransferWithSecretRequestDispatcher Deployed:", address(dispatcher2));
         //console2.log("OnetimeLockRequestDispatcher Deployed:", address(dispatcher3));
         //console2.log("ExpiringLockRequestDispatcher Deployed:", address(dispatcher4));

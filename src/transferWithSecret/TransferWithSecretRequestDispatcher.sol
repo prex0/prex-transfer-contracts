@@ -30,7 +30,9 @@ contract TransferWithSecretRequestDispatcher {
         bytes metadata;
     }
 
-    event RequestSubmitted(address token, address from, address to, uint256 amount, bytes metadata, bytes recipientMetadata);
+    event RequestSubmitted(
+        address token, address from, address to, uint256 amount, bytes metadata, bytes recipientMetadata
+    );
 
     modifier onlyFacilitator() {
         require(msg.sender == facilitator, "Only facilitator");
@@ -50,16 +52,8 @@ contract TransferWithSecretRequestDispatcher {
         TransferWithSecretRequest memory request,
         bytes memory sig,
         RecipientData memory recipientData
-    )
-        external
-        onlyFacilitator
-    {
-        _verifyRecipientSignature(
-            request.nonce,
-            request.publicKey,
-            recipientData.recipient,
-            recipientData.sig
-        );
+    ) external onlyFacilitator {
+        _verifyRecipientSignature(request.nonce, request.publicKey, recipientData.recipient, recipientData.sig);
 
         _verifySenderRequest(request, recipientData.recipient, sig);
 
@@ -76,7 +70,9 @@ contract TransferWithSecretRequestDispatcher {
     /**
      * @notice Verifies the request and the signature.
      */
-    function _verifySenderRequest(TransferWithSecretRequest memory request, address recipient, bytes memory sig) internal {
+    function _verifySenderRequest(TransferWithSecretRequest memory request, address recipient, bytes memory sig)
+        internal
+    {
         if (address(this) != address(request.dispatcher)) {
             revert InvalidDispatcher();
         }
@@ -102,12 +98,13 @@ contract TransferWithSecretRequestDispatcher {
     /**
      * @notice Verifies the signature made by the recipient using the private key received from the sender.
      */
-    function _verifyRecipientSignature(uint256 nonce, address publicKey, address recipient, bytes memory signature) internal view {
-        bytes32 messageHash = ECDSA.toEthSignedMessageHash(
-            keccak256(abi.encode(address(this), nonce, recipient))
-        );
+    function _verifyRecipientSignature(uint256 nonce, address publicKey, address recipient, bytes memory signature)
+        internal
+        view
+    {
+        bytes32 messageHash = ECDSA.toEthSignedMessageHash(keccak256(abi.encode(address(this), nonce, recipient)));
 
-        if(publicKey != ECDSA.recover(messageHash, signature)) {
+        if (publicKey != ECDSA.recover(messageHash, signature)) {
             revert InvalidSecret();
         }
     }

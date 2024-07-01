@@ -21,7 +21,10 @@ contract Aaa is SignatureTransfer {
     }
 
     function parsePaymasterAndData(bytes calldata paymasterAndData)
-    external pure returns(uint48 validUntil, uint48 validAfter, uint32 spentKey, bytes calldata signature) {
+        external
+        pure
+        returns (uint48 validUntil, uint48 validAfter, uint32 spentKey, bytes calldata signature)
+    {
         validUntil = uint48(bytes6(paymasterAndData[20:26]));
         validAfter = uint48(bytes6(paymasterAndData[26:32]));
         spentKey = uint32(bytes4(paymasterAndData[32:36]));
@@ -60,11 +63,7 @@ contract TestTransferWithSecretRequest is Test, SignatureTransfer {
 
         assertEq(block.chainid, 31337);
 
-        assertEq(
-            request.hash(),
-            bytes32(0xc3d5f16c9e6302e43e7e199d653677f6e2f59be6812b66986fa396a8376f57cc)
-        );
-
+        assertEq(request.hash(), bytes32(0xc3d5f16c9e6302e43e7e199d653677f6e2f59be6812b66986fa396a8376f57cc));
 
         assertEq(
             aaa.aaa(permit, request.hash(), TransferWithSecretRequestLib.PERMIT2_ORDER_TYPE),
@@ -81,22 +80,18 @@ contract TestTransferWithSecretRequest is Test, SignatureTransfer {
             amount: 100,
             token: address(3),
             publicKey: address(4),
-            metadata: "0x"
+            metadata: hex"0001"
         });
 
         assertEq(request.dispatcher, address(0x0000000000000000000000000000000000000001));
         assertEq(request.sender, address(0x0000000000000000000000000000000000000002));
         assertEq(request.token, address(0x0000000000000000000000000000000000000003));
 
-        
         assertEq(
             TransferWithSecretRequestLib.TRANSFER_REQUEST_TYPE_HASH,
             bytes32(0xad56504a879a0a3a3f0eb62e8e541174f27f4f3f75473be0cece846fdcc8154e)
         );
 
-        assertEq(
-            request.hash(),
-            bytes32(0xbcd6e468d5baaa21a17410b4968f4adf1a915a1a3585dd6676b68f591c610e9b)
-        );
+        assertEq(request.hash(), bytes32(0xba913b1607d37a3b3c20d7646712216b4a71cedc04195c250b96066e211f9a06));
     }
 }
