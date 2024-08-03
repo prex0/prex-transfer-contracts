@@ -7,8 +7,9 @@ import "permit2/src/interfaces/ISignatureTransfer.sol";
 import "permit2/src/interfaces/IPermit2.sol";
 import "permit2/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import "../libraries/SecretUtil.sol";
+import "solmate/src/utils/ReentrancyGuard.sol";
 
-contract OnetimeLockRequestDispatcher {
+contract OnetimeLockRequestDispatcher is ReentrancyGuard {
     using TransferWithSecretRequestLib for TransferWithSecretRequest;
 
     enum RequestStatus {
@@ -58,7 +59,7 @@ contract OnetimeLockRequestDispatcher {
         permit2 = IPermit2(_permit2);
     }
 
-    function submitRequest(TransferWithSecretRequest memory request, bytes memory sig) public {
+    function submitRequest(TransferWithSecretRequest memory request, bytes memory sig) nonReentrant public {
         bytes32 id = request.getId();
 
         if (pendingRequests[id].status != RequestStatus.NotSubmitted) {
@@ -84,7 +85,7 @@ contract OnetimeLockRequestDispatcher {
         emit RequestSubmitted(id, request.token, request.sender, request.amount, request.deadline, request.metadata);
     }
 
-    function completeRequest(bytes32 id, RecipientData memory recipientData) public {
+    function completeRequest(bytes32 id, RecipientData memory recipientData) nonReentrant public {
         PendingRequest storage request = pendingRequests[id];
 
         if (recipientData.recipient == address(0)) {
@@ -113,7 +114,7 @@ contract OnetimeLockRequestDispatcher {
         emit RequestCompleted(id, recipientData.recipient, recipientData.metadata);
     }
 
-    function batchCancelRequest(bytes32[] memory ids) external {
+    function batchCancelRequest(bytes32[] memory ids) nonReentrant external {
         for (uint256 i = 0; i < ids.length; i++) {
             cancelRequest(ids[i]);
         }
