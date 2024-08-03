@@ -8,8 +8,9 @@ import "permit2/src/interfaces/IPermit2.sol";
 import "permit2/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import "../libraries/SecretUtil.sol";
 import "solmate/src/utils/ReentrancyGuard.sol";
+import "../MultiFacilitators.sol";
 
-contract OnetimeLockRequestDispatcher is ReentrancyGuard {
+contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
     using TransferWithSecretRequestLib for TransferWithSecretRequest;
 
     enum RequestStatus {
@@ -33,7 +34,7 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard {
 
     uint256 private constant MAX_EXPIRY = 180 days;
 
-    IPermit2 permit2;
+    IPermit2 immutable permit2;
 
     error RequestAlreadyExists();
     error RequestExpired();
@@ -55,11 +56,11 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard {
     event RequestCompleted(bytes32 id, address recipient, bytes metadata);
     event RequestCancelled(bytes32 id);
 
-    constructor(address _permit2) {
+    constructor(address _permit2, address _admin) MultiFacilitators(_admin) {
         permit2 = IPermit2(_permit2);
     }
 
-    function submitRequest(TransferWithSecretRequest memory request, bytes memory sig) nonReentrant public {
+    function submitRequest(TransferWithSecretRequest memory request, bytes memory sig) nonReentrant onlyFacilitators public {
         bytes32 id = request.getId();
 
         if (pendingRequests[id].status != RequestStatus.NotSubmitted) {
@@ -85,7 +86,7 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard {
         emit RequestSubmitted(id, request.token, request.sender, request.amount, request.deadline, request.metadata);
     }
 
-    function completeRequest(bytes32 id, RecipientData memory recipientData) nonReentrant public {
+    function completeRequest(bytes32 id, RecipientData memory recipientData) nonReentrant onlyFacilitators public {
         PendingRequest storage request = pendingRequests[id];
 
         if (recipientData.recipient == address(0)) {
@@ -114,13 +115,13 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard {
         emit RequestCompleted(id, recipientData.recipient, recipientData.metadata);
     }
 
-    function batchCancelRequest(bytes32[] memory ids) nonReentrant external {
+    function batchCancelRequest(bytes32[] memory ids) nonReentrant onlyFacilitators external {
         for (uint256 i = 0; i < ids.length; i++) {
             cancelRequest(ids[i]);
         }
     }
 
-    function cancelRequest(bytes32 id) public {
+    function cancelRequest(bytes32 id) internal {
         PendingRequest storage request = pendingRequests[id];
 
         if (request.status != RequestStatus.Pending) {

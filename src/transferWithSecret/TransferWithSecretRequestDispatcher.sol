@@ -6,7 +6,7 @@ import "permit2/lib/solmate/src/tokens/ERC20.sol";
 import "permit2/src/interfaces/ISignatureTransfer.sol";
 import "permit2/src/interfaces/IPermit2.sol";
 import "permit2/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
-
+import "../MultiFacilitators.sol";
 /**
  * @notice TransferWithSecret is a mechanism for securely implementing link transfers.
  * Instead of setting the recipient's address, the sender sets a generated public key and gives the corresponding private key to the recipient.
@@ -14,11 +14,10 @@ import "permit2/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.so
  * By using a signature instead of secret information for receipt, it prevents intermediaries from exploiting the secret information.
  * This contract integrates with the Permit2 library to handle ERC20 token transfers securely and efficiently.
  */
-contract TransferWithSecretRequestDispatcher {
+contract TransferWithSecretRequestDispatcher is MultiFacilitators {
     using TransferWithSecretRequestLib for TransferWithSecretRequest;
 
-    IPermit2 permit2;
-    address public facilitator;
+    IPermit2 immutable permit2;
 
     error InvalidDispatcher();
     error DeadlinePassed();
@@ -34,14 +33,8 @@ contract TransferWithSecretRequestDispatcher {
         address token, address from, address to, uint256 amount, bytes metadata, bytes recipientMetadata
     );
 
-    modifier onlyFacilitator() {
-        require(msg.sender == facilitator, "Only facilitator");
-        _;
-    }
-
-    constructor(address _permit2, address _facilitator) {
+    constructor(address _permit2, address _facilitatorAdmin) MultiFacilitators(_facilitatorAdmin) {
         permit2 = IPermit2(_permit2);
-        facilitator = _facilitator;
     }
 
     /**
@@ -52,7 +45,7 @@ contract TransferWithSecretRequestDispatcher {
         TransferWithSecretRequest memory request,
         bytes memory sig,
         RecipientData memory recipientData
-    ) external onlyFacilitator {
+    ) external onlyFacilitators {
         _verifyRecipientSignature(request.nonce, request.publicKey, recipientData.recipient, recipientData.sig);
 
         _verifySenderRequest(request, recipientData.recipient, sig);

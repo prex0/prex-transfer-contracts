@@ -10,7 +10,7 @@ contract TestOnetimeLockRequestDispatcher is TestRequestDispatcher {
     function setUp() public virtual override(TestRequestDispatcher) {
         super.setUp();
 
-        ontimeLockDispatcher = new OnetimeLockRequestDispatcher(address(permit2));
+        ontimeLockDispatcher = new OnetimeLockRequestDispatcher(address(permit2), address(this));
     }
 
     function _sign(TransferWithSecretRequest memory request, uint256 fromPrivateKey)
