@@ -32,7 +32,6 @@ contract OnetimeLockRequestDispatcher {
 
     uint256 private constant MAX_EXPIRY = 180 days;
 
-    address public facilitator;
     IPermit2 permit2;
 
     error RequestAlreadyExists();
@@ -41,9 +40,9 @@ contract OnetimeLockRequestDispatcher {
     error RequestIsNotPending();
     error RecipientNotSet();
     error InvalidSecret();
-    error CallerIsNotSenderOrFacilitator();
     error InvalidDispatcher();
     error DeadlinePassed();
+    error TransferFailed();
 
     struct RecipientData {
         address recipient;
@@ -55,14 +54,8 @@ contract OnetimeLockRequestDispatcher {
     event RequestCompleted(bytes32 id, address recipient, bytes metadata);
     event RequestCancelled(bytes32 id);
 
-    modifier onlyFacilitator() {
-        require(msg.sender == facilitator, "Only facilitator");
-        _;
-    }
-
-    constructor(address _permit2, address _facilitator) {
+    constructor(address _permit2) {
         permit2 = IPermit2(_permit2);
-        facilitator = _facilitator;
     }
 
     function submitRequest(TransferWithSecretRequest memory request, bytes memory sig) public {
@@ -113,9 +106,17 @@ contract OnetimeLockRequestDispatcher {
         request.amount = 0;
         request.status = RequestStatus.Completed;
 
-        ERC20(request.token).transfer(recipientData.recipient, amount);
+        if(!ERC20(request.token).transfer(recipientData.recipient, amount)) {
+            revert TransferFailed();
+        }
 
         emit RequestCompleted(id, recipientData.recipient, recipientData.metadata);
+    }
+
+    function batchCancelRequest(bytes32[] memory ids) external {
+        for (uint256 i = 0; i < ids.length; i++) {
+            cancelRequest(ids[i]);
+        }
     }
 
     function cancelRequest(bytes32 id) public {
@@ -131,16 +132,14 @@ contract OnetimeLockRequestDispatcher {
             revert RequestNotExpired();
         }
 
-        if (msg.sender != request.sender && msg.sender != facilitator) {
-            revert CallerIsNotSenderOrFacilitator();
-        }
-
         uint256 amount = request.amount;
 
         request.amount = 0;
         request.status = RequestStatus.Cancelled;
 
-        ERC20(request.token).transfer(request.sender, amount);
+        if(!ERC20(request.token).transfer(request.sender, amount)) {
+            revert TransferFailed();
+        }
 
         emit RequestCancelled(id);
     }

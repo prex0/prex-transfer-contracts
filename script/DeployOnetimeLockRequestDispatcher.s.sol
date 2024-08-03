@@ -16,7 +16,7 @@ contract DeployRequestDispatcher is Script {
 
         dispatcher = new OnetimeLockRequestDispatcher{
             salt: 0x0000000000000000000000000000000000000000000000000000000000777777
-        }(PERMIT2, FACILITATOR);
+        }(PERMIT2);
 
         console2.log("OnetimeLockRequestDispatcher Deployed:", address(dispatcher));
 

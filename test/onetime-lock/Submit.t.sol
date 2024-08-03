@@ -79,13 +79,16 @@ contract TestSubmit is TestOnetimeLockRequestDispatcher {
 
         bytes32 id = ontimeLockDispatcher.getRequestId(request);
 
+        bytes32[] memory ids = new bytes32[](1);
+        ids[0] = id;
+
         vm.expectRevert(OnetimeLockRequestDispatcher.RequestNotExpired.selector);
-        ontimeLockDispatcher.cancelRequest(id);
+        ontimeLockDispatcher.batchCancelRequest(ids);
 
         vm.warp(block.timestamp + 1001);
 
         uint256 amountBefore = token.balanceOf(sender);
-        ontimeLockDispatcher.cancelRequest(id);
+        ontimeLockDispatcher.batchCancelRequest(ids);
         uint256 amountAfter = token.balanceOf(sender);
 
         assertEq(amountAfter - amountBefore, 100);
