@@ -58,7 +58,52 @@ contract TestSubmit is TestOnetimeLockRequestDispatcher {
         }
     }
 
-    function tesetCancel() public {
+    function testCannotSubmitIfAmountIsZero() public {
+        uint256 tmpPrivKey = 11111000002;
+        address tmpPublicKey = vm.addr(tmpPrivKey);
+
+        TransferWithSecretRequest memory request = TransferWithSecretRequest({
+            dispatcher: address(ontimeLockDispatcher),
+            sender: sender,
+            deadline: block.timestamp + 1000,
+            nonce: 0,
+            amount: 0,
+            token: address(token),
+            publicKey: tmpPublicKey,
+            metadata: ""
+        });
+
+        bytes memory sig = _sign(request, privateKey);
+
+        vm.expectRevert(OnetimeLockRequestDispatcher.InvalidAmount.selector);
+        ontimeLockDispatcher.submitRequest(request, sig);
+    }
+
+    function testCannotSubmitIfCallerIsNotFacilitator() public {
+        uint256 tmpPrivKey = 11111000002;
+        address tmpPublicKey = vm.addr(tmpPrivKey);
+
+        TransferWithSecretRequest memory request = TransferWithSecretRequest({
+            dispatcher: address(ontimeLockDispatcher),
+            sender: sender,
+            deadline: block.timestamp + 1000,
+            nonce: 0,
+            amount: 100,
+            token: address(token),
+            publicKey: tmpPublicKey,
+            metadata: ""
+        });
+
+        bytes memory sig = _sign(request, privateKey);
+
+        vm.startPrank(from2);
+        vm.expectRevert(MultiFacilitators.CallerIsNotFacilitator.selector);
+        ontimeLockDispatcher.submitRequest(request, sig);
+
+        vm.stopPrank();
+    }
+
+    function testCancel() public {
         uint256 tmpPrivKey = 11111000002;
         address tmpPublicKey = vm.addr(tmpPrivKey);
 

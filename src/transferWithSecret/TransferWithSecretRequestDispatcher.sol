@@ -7,6 +7,7 @@ import "permit2/src/interfaces/ISignatureTransfer.sol";
 import "permit2/src/interfaces/IPermit2.sol";
 import "permit2/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import "../MultiFacilitators.sol";
+
 /**
  * @notice TransferWithSecret is a mechanism for securely implementing link transfers.
  * Instead of setting the recipient's address, the sender sets a generated public key and gives the corresponding private key to the recipient.

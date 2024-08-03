@@ -10,6 +10,11 @@ import "../libraries/SecretUtil.sol";
 import "solmate/src/utils/ReentrancyGuard.sol";
 import "../MultiFacilitators.sol";
 
+/**
+ * @notice OnetimeLockRequestDispatcher is a contract that allows the sender to create a request with a secret key.
+ * The recipient can complete the request by providing the signature of the secret key.
+ * This contract integrates with the Permit2 library to handle ERC20 token transfers securely and efficiently.
+ */
 contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
     using TransferWithSecretRequestLib for TransferWithSecretRequest;
 
@@ -43,6 +48,8 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
     error RecipientNotSet();
     error InvalidSecret();
     error InvalidDispatcher();
+    error InvalidDeadline();
+    error InvalidAmount();
     error DeadlinePassed();
     error TransferFailed();
 
@@ -60,16 +67,28 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
         permit2 = IPermit2(_permit2);
     }
 
-    function submitRequest(TransferWithSecretRequest memory request, bytes memory sig) nonReentrant onlyFacilitators public {
+    /**
+     * @notice Submits a new transfer request.
+     * This function is executed by the sender after they receive the signature from the recipient.
+     */
+    function submitRequest(TransferWithSecretRequest memory request, bytes memory sig) nonReentrant onlyFacilitators external {
         bytes32 id = request.getId();
 
         if (pendingRequests[id].status != RequestStatus.NotSubmitted) {
             revert RequestAlreadyExists();
         }
 
-        require(request.deadline > 0);
-        require(request.deadline <= block.timestamp + MAX_EXPIRY);
-        require(request.amount > 0);
+        if(request.deadline == 0) {
+            revert InvalidDeadline();
+        }
+
+        if(request.deadline > block.timestamp + MAX_EXPIRY) {
+            revert InvalidDeadline();
+        }
+
+        if(request.amount == 0) {
+            revert InvalidAmount();
+        }
 
         _verifySenderRequest(request, sig);
 
@@ -86,7 +105,11 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
         emit RequestSubmitted(id, request.token, request.sender, request.amount, request.deadline, request.metadata);
     }
 
-    function completeRequest(bytes32 id, RecipientData memory recipientData) nonReentrant onlyFacilitators public {
+    /**
+     * @notice Completes a pending request.
+     * This function is executed by the recipient after they receive the secret from the sender.
+     */
+    function completeRequest(bytes32 id, RecipientData memory recipientData) nonReentrant onlyFacilitators external {
         PendingRequest storage request = pendingRequests[id];
 
         if (recipientData.recipient == address(0)) {
@@ -115,6 +138,9 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
         emit RequestCompleted(id, recipientData.recipient, recipientData.metadata);
     }
 
+    /**
+     * @notice Cancels pending requests.
+     */
     function batchCancelRequest(bytes32[] memory ids) nonReentrant onlyFacilitators external {
         for (uint256 i = 0; i < ids.length; i++) {
             cancelRequest(ids[i]);
