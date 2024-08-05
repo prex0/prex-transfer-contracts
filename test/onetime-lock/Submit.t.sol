@@ -79,6 +79,27 @@ contract TestSubmit is TestOnetimeLockRequestDispatcher {
         ontimeLockDispatcher.submitRequest(request, sig);
     }
 
+    function testCannotSubmitIfDeadlineIsInvalid() public {
+        uint256 tmpPrivKey = 11111000002;
+        address tmpPublicKey = vm.addr(tmpPrivKey);
+
+        TransferWithSecretRequest memory request = TransferWithSecretRequest({
+            dispatcher: address(ontimeLockDispatcher),
+            sender: sender,
+            deadline: block.timestamp + 200 days,
+            nonce: 0,
+            amount: 100,
+            token: address(token),
+            publicKey: tmpPublicKey,
+            metadata: ""
+        });
+
+        bytes memory sig = _sign(request, privateKey);
+
+        vm.expectRevert(OnetimeLockRequestDispatcher.InvalidDeadline.selector);
+        ontimeLockDispatcher.submitRequest(request, sig);
+    }
+
     function testCannotSubmitIfCallerIsNotFacilitator() public {
         uint256 tmpPrivKey = 11111000002;
         address tmpPublicKey = vm.addr(tmpPrivKey);
