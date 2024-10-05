@@ -21,10 +21,10 @@ contract DeployTransferWithSecretRequestDispatcher is Script {
         vm.startBroadcast();
 
         dispatcher = new TransferWithSecretRequestDispatcher{
-            salt: 0x0000000000000000000000000000000000000000000000000000000000077777
+            salt: 0x0000000000000000000000000000000000000000000000000000000000777777
         }(PERMIT2, FACILITATOR_ADMIN);
 
-        dispatcher.addFacilitator(FACILITATOR);
+        // dispatcher.addFacilitator(FACILITATOR);
 
         console2.log("TransferWithSecretRequestDispatcher Deployed:", address(dispatcher));
 
