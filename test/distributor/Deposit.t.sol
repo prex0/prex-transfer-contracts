@@ -62,7 +62,7 @@ contract TestTokenDistributorDeposit is TestTokenDistributorSetup {
         distributor.deposit(depositRequest, sig);
         assertEq(token.balanceOf(sender), MINT_AMOUNT - 2 * AMOUNT);
 
-        (uint256 amount, , , , , , ) = distributor.pendingRequests(requestId);
+        (uint256 amount, , , , , , , ) = distributor.pendingRequests(requestId);
 
         assertEq(amount, 2 * AMOUNT);
         assertEq(token.balanceOf(address(distributor)), 2 * AMOUNT);

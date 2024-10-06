@@ -35,6 +35,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
         address sender;
         uint256 expiry;
         RequestStatus status;
+        string name;
     }
 
     struct RecipientData {
@@ -127,7 +128,8 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
             publicKey: request.publicKey,
             sender: request.sender,
             expiry: request.expiry,
-            status: RequestStatus.Pending
+            status: RequestStatus.Pending,
+            name: request.name
         });
 
         emit Submitted(

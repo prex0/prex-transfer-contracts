@@ -69,7 +69,7 @@ contract TestTokenDistributorComplete is TestTokenDistributorSetup {
 
         vm.stopPrank();
 
-        (, , , , , , TokenDistributor.RequestStatus status) = distributor.pendingRequests(requestId);
+        (, , , , , , TokenDistributor.RequestStatus status, ) = distributor.pendingRequests(requestId);
 
         assertTrue(status == TokenDistributor.RequestStatus.Completed);
     }
