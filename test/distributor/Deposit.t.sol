@@ -53,6 +53,7 @@ contract TestTokenDistributorDeposit is TestTokenDistributorSetup {
             deadline: block.timestamp + EXPIRY_UNTIL,
             nonce: 1,
             requestId: requestId,
+            token: address(token),
             amount: AMOUNT
         });
 
@@ -75,6 +76,7 @@ contract TestTokenDistributorDeposit is TestTokenDistributorSetup {
             deadline: block.timestamp + EXPIRY_UNTIL,
             nonce: 1,
             requestId: bytes32(0),
+            token: address(token),
             amount: AMOUNT
         });
 
@@ -93,6 +95,7 @@ contract TestTokenDistributorDeposit is TestTokenDistributorSetup {
             deadline: block.timestamp + EXPIRY_UNTIL,
             nonce: 1,
             requestId: requestId,
+            token: address(token),
             amount: AMOUNT
         });
 
@@ -109,6 +112,7 @@ contract TestTokenDistributorDeposit is TestTokenDistributorSetup {
             deadline: block.timestamp - 1,
             nonce: 1,
             requestId: requestId,
+            token: address(token),
             amount: AMOUNT
         });
 

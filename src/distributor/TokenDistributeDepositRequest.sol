@@ -7,6 +7,7 @@ struct TokenDistributeDepositRequest {
     uint256 deadline;
     uint256 nonce;
     bytes32 requestId;
+    address token;
     uint256 amount;
 }
 
@@ -18,6 +19,7 @@ library TokenDistributeDepositRequestLib {
         "uint256 deadline,",
         "uint256 nonce,",
         "bytes32 requestId,",
+        "address token,",
         "uint256 amount)"
     );
 
@@ -41,6 +43,7 @@ library TokenDistributeDepositRequestLib {
                 request.deadline,
                 request.nonce,
                 request.requestId,
+                request.token,
                 request.amount
             )
         );

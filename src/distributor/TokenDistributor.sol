@@ -148,7 +148,11 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
             revert RequestExpiredError();
         }
 
-        _verifySenderDepositRequest(request.token, depositRequest, sig);
+        if (depositRequest.token != request.token) {
+            revert InvalidRequest();
+        }
+
+        _verifySenderDepositRequest(depositRequest, sig);
 
         request.amount += depositRequest.amount;
 
@@ -263,7 +267,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
         );
     }
 
-    function _verifySenderDepositRequest(address token, TokenDistributeDepositRequest memory request, bytes memory sig) internal {
+    function _verifySenderDepositRequest(TokenDistributeDepositRequest memory request, bytes memory sig) internal {
         if (address(this) != address(request.dispatcher)) {
             revert InvalidDispatcher();
         }
@@ -274,7 +278,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
 
         permit2.permitWitnessTransferFrom(
             ISignatureTransfer.PermitTransferFrom({
-                permitted: ISignatureTransfer.TokenPermissions({token: token, amount: request.amount}),
+                permitted: ISignatureTransfer.TokenPermissions({token: request.token, amount: request.amount}),
                 nonce: request.nonce,
                 deadline: request.deadline
             }),
