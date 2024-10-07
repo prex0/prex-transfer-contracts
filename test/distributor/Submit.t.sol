@@ -120,4 +120,18 @@ contract TestTokenDistributorSubmit is TestTokenDistributorSetup {
 
         vm.stopPrank();
     }
+
+    // fails to submit if deadline passed
+    function testCannotSubmitIfDeadlinePassed() public {
+        TokenDistributeSubmitRequest memory request = _getRequest(address(distributor), block.timestamp - 1, block.timestamp + 100);
+
+        bytes memory sig = _sign(request, privateKey);
+
+        vm.startPrank(facilitator);
+
+        vm.expectRevert(TokenDistributor.DeadlinePassed.selector);
+        distributor.submit(request, sig);
+
+        vm.stopPrank();
+    }
 }

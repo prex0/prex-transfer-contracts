@@ -84,7 +84,7 @@ contract TestTokenDistributorDeposit is TestTokenDistributorSetup {
         distributor.deposit(depositRequest, sig);
     }
 
-    function testCannotDepositIfRequestExpired() public {
+    function testCannotDepositIfDistribitionRequestExpired() public {
         vm.warp(block.timestamp + EXPIRY_UNTIL + 1);
 
         TokenDistributeDepositRequest memory depositRequest = TokenDistributeDepositRequest({
@@ -100,5 +100,21 @@ contract TestTokenDistributorDeposit is TestTokenDistributorSetup {
 
         vm.expectRevert(TokenDistributor.RequestExpiredError.selector);
         distributor.deposit(depositRequest, sig);
-    }    
+    }
+
+    function testCannotDepositIfDepositRequestExpired() public {
+        TokenDistributeDepositRequest memory depositRequest = TokenDistributeDepositRequest({
+            dispatcher: address(distributor),
+            sender: sender,
+            deadline: block.timestamp - 1,
+            nonce: 1,
+            requestId: requestId,
+            amount: AMOUNT
+        });
+
+        bytes memory sig = _sign(depositRequest, request.token, privateKey);
+
+        vm.expectRevert(TokenDistributor.DeadlinePassed.selector);
+        distributor.deposit(depositRequest, sig);
+    }
 }
