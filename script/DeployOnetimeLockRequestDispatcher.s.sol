@@ -16,12 +16,12 @@ contract DeployRequestDispatcher is Script {
         vm.startBroadcast();
 
         dispatcher = new OnetimeLockRequestDispatcher{
-            salt: 0x0000000000000000000000000000000000000000000000000000000000777777
+            salt: 0x0000000000000000000000000000000000000000000000000000000007777777
         }(PERMIT2, FACILITATOR_ADMIN);
 
         console2.log("OnetimeLockRequestDispatcher Deployed:", address(dispatcher));
 
-        dispatcher.addFacilitator(FACILITATOR);
+        // dispatcher.addFacilitator(FACILITATOR);
 
         vm.stopBroadcast();
     }
