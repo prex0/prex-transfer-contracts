@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "forge-std/console2.sol";
 import "forge-std/Script.sol";
 import {TokenDistributor} from "src/distributor/TokenDistributor.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract DeployTokenDistributor is Script {
     address public PERMIT2 = address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
