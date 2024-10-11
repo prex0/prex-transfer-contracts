@@ -70,7 +70,7 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
 
         vm.startPrank(recipient);
 
-        vm.expectRevert(MultiFacilitators.CallerIsNotFacilitator.selector);
+        vm.expectRevert(MultiFacilitatorsUpgradable.CallerIsNotFacilitator.selector);
         distributor.distribute(recipientData);
 
         vm.stopPrank();

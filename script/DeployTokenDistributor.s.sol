@@ -16,12 +16,10 @@ contract DeployTokenDistributor is Script {
     function run() public returns (TokenDistributor dispatcher) {
         vm.startBroadcast();
 
-        dispatcher = new TokenDistributor{
-            salt: 0x0000000000000000000000000000000000000000000000000000000007777777
-        }(PERMIT2, FACILITATOR_ADMIN);
+        dispatcher = new TokenDistributor();
 
         bytes memory data = abi.encodeWithSelector(
-            TokenDistributor(payable(dispatcher)).initialize.selector,
+            TokenDistributor(dispatcher).initialize.selector,
             PERMIT2,
             FACILITATOR_ADMIN
         );

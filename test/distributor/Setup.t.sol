@@ -37,7 +37,8 @@ contract TestTokenDistributorSetup is TestUtils {
 
         DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
 
-        distributor = new TokenDistributor(address(permit2), address(this));
+        distributor = new TokenDistributor();
+        distributor.initialize(address(permit2), address(this));
 
         distributor.addFacilitator(facilitator);
 

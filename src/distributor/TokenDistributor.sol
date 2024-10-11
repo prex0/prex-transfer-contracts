@@ -6,7 +6,7 @@ import "./TokenDistributeDepositRequest.sol";
 import "permit2/lib/solmate/src/tokens/ERC20.sol";
 import "permit2/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import "permit2/src/interfaces/IPermit2.sol";
-import "../MultiFacilitators.sol";
+import "../MultiFacilitatorsUpgradable.sol";
 import "solmate/src/utils/ReentrancyGuard.sol";
 import "./CoolTimeLib.sol";
 
@@ -17,7 +17,7 @@ import "./CoolTimeLib.sol";
  * This contract integrates with the Permit2 library to handle ERC20 token transfers securely and efficiently.
  * It supports multiple concurrent requests, enabling flexible and scalable token distribution scenarios.
  */
-contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
+contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
     using TokenDistributeSubmitRequestLib for TokenDistributeSubmitRequest;
     using TokenDistributeDepositRequestLib for TokenDistributeDepositRequest;
     using CoolTimeLib for CoolTimeLib.DistributionInfo;
@@ -59,7 +59,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
     /// @dev nonce => isUsed
     mapping(uint256 => bool) public nonceUsedMap;
 
-    IPermit2 immutable permit2;
+    IPermit2 private permit2;
 
     /// @dev Error codes
     error InvalidRequest();
@@ -104,7 +104,12 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
     event RequestCancelled(bytes32 id, uint256 amount);
     event RequestExpired(bytes32 id, uint256 amount);
 
-    constructor(address _permit2, address _admin) MultiFacilitators(_admin) {
+    constructor() {
+    }
+
+    function initialize(address _permit2, address _admin) public initializer {
+        __MultiFacilitators_init(_admin);
+
         permit2 = IPermit2(_permit2);
     }
 
