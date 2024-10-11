@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "forge-std/console2.sol";
 import "forge-std/Script.sol";
 import {TokenDistributor} from "src/distributor/TokenDistributor.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract DeployTokenDistributor is Script {
     address public PERMIT2 = address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
@@ -19,7 +20,14 @@ contract DeployTokenDistributor is Script {
             salt: 0x0000000000000000000000000000000000000000000000000000000007777777
         }(PERMIT2, FACILITATOR_ADMIN);
 
-        console2.log("TokenDistributor Deployed:", address(dispatcher));
+        bytes memory data = abi.encodeWithSelector(
+            TokenDistributor(payable(dispatcher)).initialize.selector,
+            PERMIT2,
+            FACILITATOR_ADMIN
+        );
+        ERC1967Proxy proxy = new ERC1967Proxy(address(dispatcher), data);
+
+        console2.log("TokenDistributor Deployed:", address(proxy));
 
         vm.stopBroadcast();
     }

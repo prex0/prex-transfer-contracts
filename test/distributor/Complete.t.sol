@@ -29,9 +29,11 @@ contract TestTokenDistributorComplete is TestTokenDistributorSetup {
             publicKey: tmpPublicKey,
             amount: AMOUNT,
             amountPerWithdrawal: 1,
+            cooltime: 1,
+            maxAmountPerAddress: 100,
             expiry: block.timestamp + EXPIRY_UNTIL,
             name: "test",
-            metadata: ""
+            coordinate: bytes32(0)
         });
 
         requestId = request.hash();
@@ -69,7 +71,7 @@ contract TestTokenDistributorComplete is TestTokenDistributorSetup {
 
         vm.stopPrank();
 
-        (, , , , , , TokenDistributor.RequestStatus status, ) = distributor.pendingRequests(requestId);
+        (, , , , , , , , TokenDistributor.RequestStatus status, , ) = distributor.pendingRequests(requestId);
 
         assertTrue(status == TokenDistributor.RequestStatus.Completed);
     }

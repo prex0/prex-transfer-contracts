@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {TestTokenDistributorSetup} from "./Setup.t.sol";
 import "../../src/distributor/TokenDistributor.sol";
 import "../../src/distributor/TokenDistributeSubmitRequest.sol";
+import "forge-std/console.sol";
 
 contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
     using TokenDistributeSubmitRequestLib for TokenDistributeSubmitRequest;
@@ -11,8 +12,8 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
     TokenDistributeSubmitRequest internal request;
     bytes32 internal requestId;
 
-    uint256 public constant AMOUNT = 2;
-    uint256 public constant EXPIRY_UNTIL = 1 hours;
+    uint256 public constant AMOUNT = 3;
+    uint256 public constant EXPIRY_UNTIL = 5 hours;
 
     uint256 public constant tmpPrivKey = 11111000002;
 
@@ -30,9 +31,11 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
             publicKey: tmpPublicKey,
             amount: AMOUNT,
             amountPerWithdrawal: 1,
+            cooltime: 1 hours,
+            maxAmountPerAddress: 2,
             expiry: block.timestamp + EXPIRY_UNTIL,
             name: "test",
-            metadata: ""
+            coordinate: bytes32(0)
         });
 
         requestId = request.hash();
@@ -77,6 +80,7 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
     function testCannotDistributeWithInsufficientLockedAmount() public {
         distributor.distribute( _getRecipientData(requestId, 1, block.timestamp + EXPIRY_UNTIL, address(11), tmpPrivKey));
         distributor.distribute( _getRecipientData(requestId, 2, block.timestamp + EXPIRY_UNTIL, address(12), tmpPrivKey));
+        distributor.distribute( _getRecipientData(requestId, 3, block.timestamp + EXPIRY_UNTIL, address(13), tmpPrivKey));
 
         TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
@@ -117,13 +121,36 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
         distributor.distribute(recipientData);
     }
     
-    // fails to distribute with incorrect recipient
-    function testCannotDistributeWithIncorrectRecipient() public {
+    // fails to distribute if not enough cooltime
+    function testCannotDistributeIfNotEnoughCooltime() public {
         distributor.distribute( _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey));
 
         TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 1, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
-        vm.expectRevert(abi.encodeWithSelector(TokenDistributor.AlreadyDistributed.selector, recipient));
+        vm.expectRevert(CoolTimeLib.NotEnoughCooltime.selector);
+        distributor.distribute(recipientData);
+
+        vm.warp(block.timestamp + 2 hours);
+
+        // should be successful
         distributor.distribute(recipientData);
     }
+
+    // fails to distribute if exceeded max amount
+    function testCannotDistributeIfExceededMaxAmount() public {
+        uint256 startTime = block.timestamp;
+        distributor.distribute( _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey));
+
+        vm.warp(2 hours);
+
+        distributor.distribute( _getRecipientData(requestId, 1, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey));
+        
+        vm.warp(4 hours);
+
+        TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 2, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+
+        vm.expectRevert(CoolTimeLib.ExceededMaxAmount.selector);
+        distributor.distribute(recipientData);
+    }
+
 }

@@ -8,6 +8,7 @@ import "permit2/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.so
 import "permit2/src/interfaces/IPermit2.sol";
 import "../MultiFacilitators.sol";
 import "solmate/src/utils/ReentrancyGuard.sol";
+import "./CoolTimeLib.sol";
 
 /**
  * @notice TokenDistributor is a contract that allows senders to create multiple distribution requests.
@@ -19,6 +20,7 @@ import "solmate/src/utils/ReentrancyGuard.sol";
 contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
     using TokenDistributeSubmitRequestLib for TokenDistributeSubmitRequest;
     using TokenDistributeDepositRequestLib for TokenDistributeDepositRequest;
+    using CoolTimeLib for CoolTimeLib.DistributionInfo;
 
     enum RequestStatus {
         NotSubmitted,
@@ -30,12 +32,15 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
     struct PendingRequest {
         uint256 amount;
         uint256 amountPerWithdrawal;
+        uint256 cooltime;
+        uint256 maxAmountPerAddress;
         address token;
         address publicKey;
         address sender;
         uint256 expiry;
         RequestStatus status;
         string name;
+        bytes32 coordinate;
     }
 
     struct RecipientData {
@@ -48,8 +53,8 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
 
     mapping(bytes32 => PendingRequest) public pendingRequests;
 
-    /// @dev id => recipient => isDistributed
-    mapping(bytes32 => mapping(address => bool)) public isDistributed;
+    /// @dev id => recipient => lastDistributedAt
+    mapping(bytes32 => mapping(address => CoolTimeLib.DistributionInfo)) public distributionInfoMap;
 
     /// @dev nonce => isUsed
     mapping(uint256 => bool) public nonceUsedMap;
@@ -66,8 +71,6 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
     error RequestExpiredError();
     /// insufficient funds
     error InsufficientFunds();
-    /// already distributed
-    error AlreadyDistributed(address recipient);
     /// request is not expired
     error RequestNotExpired();
     /// caller is not sender
@@ -89,9 +92,11 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
         address sender,
         uint256 amount,
         uint256 amountPerWithdrawal,
+        uint256 cooltime,
+        uint256 maxAmountPerAddress,
         uint256 expiry,
         string name,
-        bytes metadata
+        bytes32 coordinate
     );
 
     event Deposited(bytes32 id, address depositor, uint256 amount);
@@ -124,16 +129,28 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
         pendingRequests[id] = PendingRequest({
             amount: request.amount,
             amountPerWithdrawal: request.amountPerWithdrawal,
+            cooltime: request.cooltime,
+            maxAmountPerAddress: request.maxAmountPerAddress,
             token: request.token,
             publicKey: request.publicKey,
             sender: request.sender,
             expiry: request.expiry,
             status: RequestStatus.Pending,
-            name: request.name
+            name: request.name,
+            coordinate: request.coordinate
         });
 
         emit Submitted(
-            id, request.token, request.sender, request.amount, request.amountPerWithdrawal, request.expiry, request.name, request.metadata
+            id,
+            request.token,
+            request.sender,
+            request.amount,
+            request.amountPerWithdrawal,
+            request.cooltime,
+            request.maxAmountPerAddress,
+            request.expiry,
+            request.name,
+            request.coordinate
         );
     }
 
@@ -165,6 +182,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
      */
     function distribute(RecipientData memory recipientData) public onlyFacilitators {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
+        CoolTimeLib.DistributionInfo storage info = distributionInfoMap[recipientData.requestId][recipientData.recipient];
 
         if (block.timestamp > request.expiry) {
             revert RequestExpiredError();
@@ -174,15 +192,14 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitators {
             revert InsufficientFunds();
         }
 
-        if (isDistributed[recipientData.requestId][recipientData.recipient]) {
-            revert AlreadyDistributed(recipientData.recipient);
-        }
+        info.validate(request.cooltime, request.maxAmountPerAddress);
 
         _verifyRecipientSignature(request.publicKey, recipientData.nonce, recipientData.deadline, recipientData.recipient, recipientData.sig);
 
         request.amount -= request.amountPerWithdrawal;
 
-        isDistributed[recipientData.requestId][recipientData.recipient] = true;
+        info.lastDistributedAt = block.timestamp;
+        info.amount += request.amountPerWithdrawal;
 
         ERC20(request.token).transfer(recipientData.recipient, request.amountPerWithdrawal);
 

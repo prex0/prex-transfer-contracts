@@ -27,9 +27,11 @@ contract TestTokenDistributorSubmit is TestTokenDistributorSetup {
             publicKey: tmpPublicKey,
             amount: 1,
             amountPerWithdrawal: 1,
+            cooltime: 1,
+            maxAmountPerAddress: 100,
             expiry: _expiry,
             name: "test",
-            metadata: ""
+            coordinate: bytes32(0)
         });
     }
 

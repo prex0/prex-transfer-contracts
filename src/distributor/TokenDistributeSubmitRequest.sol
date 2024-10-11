@@ -12,7 +12,9 @@ struct TokenDistributeSubmitRequest {
     uint256 amountPerWithdrawal;
     uint256 expiry;
     string name;
-    bytes metadata;
+    uint256 cooltime;
+    uint256 maxAmountPerAddress;
+    bytes32 coordinate;
 }
 
 library TokenDistributeSubmitRequestLib {
@@ -28,7 +30,9 @@ library TokenDistributeSubmitRequestLib {
         "uint256 amountPerWithdrawal,",
         "uint256 expiry,",
         "string name,",
-        "bytes metadata)"
+        "uint256 cooltime,",
+        "uint256 maxAmountPerAddress,",
+        "bytes32 coordinate)"
     );
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec
@@ -57,7 +61,9 @@ library TokenDistributeSubmitRequestLib {
                 request.amountPerWithdrawal,
                 request.expiry,
                 keccak256(abi.encodePacked(request.name)),
-                keccak256(request.metadata)
+                request.cooltime,
+                request.maxAmountPerAddress,
+                request.coordinate
             )
         );
     }
