@@ -26,6 +26,10 @@ contract MultiFacilitatorsUpgradable is OwnableUpgradeable {
         _;
     }
 
+    /**
+     * @notice Initialize the contract
+     * @param admin The address of the admin.
+     */
     function __MultiFacilitators_init(address admin) internal onlyInitializing {
         __Ownable_init();
         transferOwnership(admin);
@@ -33,12 +37,20 @@ contract MultiFacilitatorsUpgradable is OwnableUpgradeable {
         facilitators[admin] = true;
     }
 
+    /**
+     * @notice Add a facilitator
+     * @param _facilitator The address of the facilitator to add.
+     */
     function addFacilitator(address _facilitator) public onlyOwner {
         facilitators[_facilitator] = true;
 
         emit FacilitatorAdded(_facilitator);
     }
 
+    /**
+     * @notice Remove a facilitator
+     * @param _facilitator The address of the facilitator to remove.
+     */
     function removeFacilitator(address _facilitator) public onlyOwner {
         facilitators[_facilitator] = false;
 

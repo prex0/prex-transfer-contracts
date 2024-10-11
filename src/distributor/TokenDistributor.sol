@@ -115,6 +115,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
 
     /**
      * @notice Submits a request to distribute tokens.
+     * @dev Only facilitators can submit requests.
      * @param request The request to submit.
      * @param sig The signature of the request.
      */
@@ -159,6 +160,12 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
         );
     }
 
+    /**
+     * @notice Deposit tokens to the request
+     * @dev Only facilitators can submit deposit requests.
+     * @param depositRequest The deposit request.
+     * @param sig The signature of the deposit request.
+     */
     function deposit(TokenDistributeDepositRequest memory depositRequest, bytes memory sig) public onlyFacilitators {
         PendingRequest storage request = pendingRequests[depositRequest.requestId];
 
@@ -183,6 +190,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
 
     /**
      * @notice Distribute the request to the recipient
+     * @dev Only facilitators can submit distribute requests.
      * @param recipientData The data of the recipient.
      */
     function distribute(RecipientData memory recipientData) public onlyFacilitators {
