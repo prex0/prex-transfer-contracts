@@ -1,3 +1,5 @@
+pragma solidity ^0.8.17;
+
 import {Test} from "forge-std/Test.sol";
 import {ECDSA} from "permit2/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import "permit2/src/interfaces/IPermit2.sol";

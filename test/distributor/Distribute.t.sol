@@ -138,7 +138,6 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
 
     // fails to distribute if exceeded max amount
     function testCannotDistributeIfExceededMaxAmount() public {
-        uint256 startTime = block.timestamp;
         distributor.distribute( _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey));
 
         vm.warp(2 hours);
