@@ -9,6 +9,7 @@ import "permit2/src/interfaces/IPermit2.sol";
 import "../MultiFacilitatorsUpgradable.sol";
 import "solmate/src/utils/ReentrancyGuard.sol";
 import "./CoolTimeLib.sol";
+import "./IAdditionalValidator.sol";
 
 /**
  * @notice TokenDistributor is a contract that allows senders to create multiple distribution requests.
@@ -40,15 +41,9 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
         uint256 expiry;
         RequestStatus status;
         string name;
+        address additionalValidator;
+        bytes additionalData;
         bytes32 coordinate;
-    }
-
-    struct RecipientData {
-        bytes32 requestId;
-        address recipient;
-        uint256 nonce;
-        uint256 deadline;
-        bytes sig;
     }
 
     mapping(bytes32 => PendingRequest) public pendingRequests;
@@ -85,6 +80,9 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
     error InvalidDispatcher();
     /// deadline passed
     error DeadlinePassed();
+
+    /// invalid additional validation
+    error InvalidAdditionalValidation();
 
     event Submitted(
         bytes32 id,
@@ -143,6 +141,8 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
             expiry: request.expiry,
             status: RequestStatus.Pending,
             name: request.name,
+            additionalValidator: request.additionalValidator,
+            additionalData: request.additionalData,
             coordinate: request.coordinate
         });
 
@@ -206,6 +206,12 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
         }
 
         info.validate(request.cooltime, request.maxAmountPerAddress);
+
+        if(request.additionalValidator != address(0)) {
+            if(!IAdditionalValidator(request.additionalValidator).verify(recipientData, request.additionalData)) {
+                revert InvalidAdditionalValidation();
+            }
+        }
 
         _verifyRecipientSignature(request.publicKey, recipientData.nonce, recipientData.deadline, recipientData.recipient, recipientData.sig);
 

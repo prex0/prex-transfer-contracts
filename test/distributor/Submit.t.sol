@@ -31,7 +31,9 @@ contract TestTokenDistributorSubmit is TestTokenDistributorSetup {
             maxAmountPerAddress: 100,
             expiry: _expiry,
             name: "test",
-            coordinate: bytes32(0)
+            coordinate: bytes32(0),
+            additionalValidator: address(0),
+            additionalData: bytes("")
         });
     }
 

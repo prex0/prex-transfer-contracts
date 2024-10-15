@@ -12,7 +12,7 @@ import {
     TokenDistributeDepositRequest,
     TokenDistributeDepositRequestLib
 } from "src/distributor/TokenDistributeDepositRequest.sol";
-import {TokenDistributor} from "src/distributor/TokenDistributor.sol";
+import {TokenDistributor, RecipientData} from "src/distributor/TokenDistributor.sol";
 import {MockERC20} from "../MockERC20.sol";
 import {TestUtils} from "../TestUtils.sol";
 
@@ -118,10 +118,10 @@ contract TestTokenDistributorSetup is TestUtils {
         uint256 _deadline,
         address _recipient,
         uint256 _privateKey
-    ) internal view returns (TokenDistributor.RecipientData memory) {
+    ) internal view returns (RecipientData memory) {
         bytes32 messageHash = keccak256(abi.encode(address(distributor), _nonce, _deadline, _recipient));
 
-        return TokenDistributor.RecipientData({
+        return RecipientData({
             requestId: _requestId,
             recipient: _recipient,
             nonce: _nonce,
