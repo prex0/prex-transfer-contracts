@@ -4,7 +4,6 @@ pragma solidity ^0.8.13;
 import {TestTokenDistributorSetup} from "./Setup.t.sol";
 import "../../src/distributor/TokenDistributor.sol";
 import "../../src/distributor/TokenDistributeSubmitRequest.sol";
-import "forge-std/console.sol";
 
 contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
     using TokenDistributeSubmitRequestLib for TokenDistributeSubmitRequest;
@@ -35,7 +34,9 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
             maxAmountPerAddress: 2,
             expiry: block.timestamp + EXPIRY_UNTIL,
             name: "test",
-            coordinate: bytes32(0)
+            coordinate: bytes32(0),
+            additionalValidator: address(0),
+            additionalData: bytes("")
         });
 
         requestId = request.hash();
@@ -51,7 +52,7 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
 
     // distribute
     function testDistribute() public {
-        TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+        RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.startPrank(facilitator);
 
@@ -66,7 +67,7 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
 
     // fails to distribute if not facilitator
     function testCannotDistributeIfNotFacilitator() public {
-        TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+        RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.startPrank(recipient);
 
@@ -82,7 +83,7 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
         distributor.distribute( _getRecipientData(requestId, 2, block.timestamp + EXPIRY_UNTIL, address(12), tmpPrivKey));
         distributor.distribute( _getRecipientData(requestId, 3, block.timestamp + EXPIRY_UNTIL, address(13), tmpPrivKey));
 
-        TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+        RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.expectRevert(TokenDistributor.InsufficientFunds.selector);
         distributor.distribute(recipientData);
@@ -93,7 +94,7 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
 
     // fails to distribute after expiry
     function testCannotDistributeAfterExpiry() public {
-        TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+        RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.warp(block.timestamp + EXPIRY_UNTIL + 1);
 
@@ -103,7 +104,7 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
 
     // fails to distribute with incorrect signature
     function testCannotDistributeWithIncorrectSignature() public {
-        TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+        RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         recipientData.sig = _sign(request, privateKey);
 
@@ -115,7 +116,7 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
     function testCannotDistributeWithIncorrectNonce() public {
         distributor.distribute( _getRecipientData(requestId, 1, block.timestamp + EXPIRY_UNTIL, address(11), tmpPrivKey));
 
-        TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 1, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+        RecipientData memory recipientData = _getRecipientData(requestId, 1, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.expectRevert(TokenDistributor.NonceUsed.selector);
         distributor.distribute(recipientData);
@@ -125,7 +126,7 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
     function testCannotDistributeIfNotEnoughCooltime() public {
         distributor.distribute( _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey));
 
-        TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 1, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+        RecipientData memory recipientData = _getRecipientData(requestId, 1, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.expectRevert(CoolTimeLib.NotEnoughCooltime.selector);
         distributor.distribute(recipientData);
@@ -146,10 +147,9 @@ contract TestTokenDistributorDistribute is TestTokenDistributorSetup {
         
         vm.warp(4 hours);
 
-        TokenDistributor.RecipientData memory recipientData = _getRecipientData(requestId, 2, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+        RecipientData memory recipientData = _getRecipientData(requestId, 2, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.expectRevert(CoolTimeLib.ExceededMaxAmount.selector);
         distributor.distribute(recipientData);
     }
-
 }

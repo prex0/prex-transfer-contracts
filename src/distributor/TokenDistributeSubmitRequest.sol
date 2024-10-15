@@ -14,6 +14,8 @@ struct TokenDistributeSubmitRequest {
     string name;
     uint256 cooltime;
     uint256 maxAmountPerAddress;
+    address additionalValidator;
+    bytes additionalData;
     bytes32 coordinate;
 }
 
@@ -32,6 +34,8 @@ library TokenDistributeSubmitRequestLib {
         "string name,",
         "uint256 cooltime,",
         "uint256 maxAmountPerAddress,",
+        "address additionalValidator,",
+        "bytes additionalData,",
         "bytes32 coordinate)"
     );
 
@@ -63,6 +67,8 @@ library TokenDistributeSubmitRequestLib {
                 keccak256(abi.encodePacked(request.name)),
                 request.cooltime,
                 request.maxAmountPerAddress,
+                request.additionalValidator,
+                keccak256(request.additionalData),
                 request.coordinate
             )
         );
