@@ -27,9 +27,11 @@ library TokenDistributeDepositRequestLib {
 
     bytes internal constant TOKEN_DISTRIBUTE_DEPOSIT_REQUEST_TYPE = abi.encodePacked(TOKEN_DISTRIBUTE_DEPOSIT_REQUEST_TYPE_S);
     bytes32 internal constant TOKEN_DISTRIBUTE_DEPOSIT_REQUEST_TYPE_HASH = keccak256(TOKEN_DISTRIBUTE_DEPOSIT_REQUEST_TYPE);
-    string internal constant PERMIT2_ORDER_TYPE =
-        string(abi.encodePacked("TokenDistributeDepositRequest witness)", TOKEN_DISTRIBUTE_DEPOSIT_REQUEST_TYPE_S));
 
+    string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
+
+    string internal constant PERMIT2_ORDER_TYPE =
+        string(abi.encodePacked("TokenDistributeDepositRequest witness)", TOKEN_DISTRIBUTE_DEPOSIT_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE));
 
     /// @notice hash the given request
     /// @param request the request to hash

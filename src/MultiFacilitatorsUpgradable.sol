@@ -32,7 +32,8 @@ contract MultiFacilitatorsUpgradable is OwnableUpgradeable {
      */
     function __MultiFacilitators_init(address admin) internal onlyInitializing {
         __Ownable_init();
-        transferOwnership(admin);
+        
+        _transferOwnership(admin);
 
         facilitators[admin] = true;
     }

@@ -14,10 +14,11 @@ contract TestTokenDistributorComplete is TestTokenDistributorSetup {
     uint256 constant AMOUNT = 100;
     uint256 constant EXPIRY_UNTIL = 1 hours;
 
+    uint256 public constant tmpPrivKey = 11111000002;
+
     function setUp() public virtual override(TestTokenDistributorSetup) {
         super.setUp();
 
-        uint256 tmpPrivKey = 11111000002;
         address tmpPublicKey = vm.addr(tmpPrivKey);
 
         request = TokenDistributeSubmitRequest({
@@ -78,7 +79,26 @@ contract TestTokenDistributorComplete is TestTokenDistributorSetup {
         assertTrue(status == TokenDistributor.RequestStatus.Completed);
     }
 
-    // cancel request after expiry
+    // complete request
+    function testCompleteRequestIfAmountIsZero() public {
+        RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+
+        vm.startPrank(facilitator);
+
+        distributor.distribute(recipientData);
+
+        vm.warp(block.timestamp + EXPIRY_UNTIL + 1);
+
+        distributor.completeRequest(requestId);
+
+        vm.stopPrank();
+
+        (, , , , , , , , TokenDistributor.RequestStatus status, , , , ) = distributor.pendingRequests(requestId);
+
+        assertTrue(status == TokenDistributor.RequestStatus.Completed);
+    }
+
+    // fails if request is not expired
     function testCannotCompleteRequestBeforeExpiry() public {
         vm.startPrank(facilitator);
 

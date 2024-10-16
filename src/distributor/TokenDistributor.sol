@@ -272,7 +272,9 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
 
         request.status = RequestStatus.Completed;
 
-        ERC20(request.token).transfer(request.sender, leftAmount);
+        if(leftAmount > 0) {
+            ERC20(request.token).transfer(request.sender, leftAmount);
+        }
 
         emit RequestExpired(id, leftAmount);
     }

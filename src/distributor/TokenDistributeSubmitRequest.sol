@@ -43,8 +43,11 @@ library TokenDistributeSubmitRequestLib {
 
     bytes internal constant TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE = abi.encodePacked(TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_S);
     bytes32 internal constant TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_HASH = keccak256(TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE);
+
+    string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
+
     string internal constant PERMIT2_ORDER_TYPE =
-        string(abi.encodePacked("TokenDistributeSubmitRequest witness)", TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_S));
+        string(abi.encodePacked("TokenDistributeSubmitRequest witness)", TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE));
 
     uint256 private constant MAX_EXPIRY = 360 days;
 
