@@ -16,14 +16,18 @@ contract DeployTokenDistributor is Script {
     function run() public returns (TokenDistributor dispatcher) {
         vm.startBroadcast();
 
-        dispatcher = new TokenDistributor();
+        dispatcher = new TokenDistributor{
+            salt: 0x0000000000000000000000000000000000000000000000000000000000777777
+        }();
 
         bytes memory data = abi.encodeWithSelector(
             TokenDistributor(dispatcher).initialize.selector,
             PERMIT2,
             FACILITATOR_ADMIN
         );
-        ERC1967Proxy proxy = new ERC1967Proxy(address(dispatcher), data);
+        ERC1967Proxy proxy = new ERC1967Proxy{
+            salt: 0x0000000000000000000000000000000000000000000000000000000000777777
+        }(address(dispatcher), data);
 
         console2.log("TokenDistributor Deployed:", address(proxy));
 

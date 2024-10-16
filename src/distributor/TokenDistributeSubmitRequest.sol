@@ -64,7 +64,7 @@ library TokenDistributeSubmitRequestLib {
                 request.amount,
                 request.amountPerWithdrawal,
                 request.expiry,
-                keccak256(abi.encodePacked(request.name)),
+                keccak256(bytes(request.name)),
                 request.cooltime,
                 request.maxAmountPerAddress,
                 request.additionalValidator,

@@ -27,6 +27,7 @@ contract TestTokenDistributeSubmitRequestLib is Test {
         });
 
         assertEq(request.dispatcher, address(0x0000000000000000000000000000000000000000));
+        assertEq(request.additionalData, bytes(""));
 
         assertEq(
             TokenDistributeSubmitRequestLib.TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_HASH,
