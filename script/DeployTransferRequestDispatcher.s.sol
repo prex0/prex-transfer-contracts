@@ -14,7 +14,7 @@ contract DeployTransferRequestDispatcher is Script {
         vm.startBroadcast();
 
         dispatcher = new TransferRequestDispatcher{
-            salt: 0x0000000000000000000000000000000000000000000000000000000000077777
+            salt: 0x0000000000000000000000000000000000000000000000000000000007777777
         }(PERMIT2);
 
         console2.log("TransferRequestDispatcher Deployed:", address(dispatcher));
