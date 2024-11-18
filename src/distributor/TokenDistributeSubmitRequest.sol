@@ -41,13 +41,18 @@ library TokenDistributeSubmitRequestLib {
 
     /// @dev Note that sub-structs have to be defined in alphabetical order in the EIP-712 spec
 
-    bytes internal constant TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE = abi.encodePacked(TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_S);
-    bytes32 internal constant TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_HASH = keccak256(TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE);
+    bytes internal constant TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE =
+        abi.encodePacked(TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_S);
+    bytes32 internal constant TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_HASH =
+        keccak256(TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE);
 
     string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
 
-    string internal constant PERMIT2_ORDER_TYPE =
-        string(abi.encodePacked("TokenDistributeSubmitRequest witness)", TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE));
+    string internal constant PERMIT2_ORDER_TYPE = string(
+        abi.encodePacked(
+            "TokenDistributeSubmitRequest witness)", TOKEN_DISTRIBUTE_SUBMIT_REQUEST_TYPE_S, TOKEN_PERMISSIONS_TYPE
+        )
+    );
 
     uint256 private constant MAX_EXPIRY = 360 days;
 
@@ -78,19 +83,19 @@ library TokenDistributeSubmitRequestLib {
     }
 
     function verify(TokenDistributeSubmitRequest memory request) internal view returns (bool) {
-        if(request.expiry <= block.timestamp) {
+        if (request.expiry <= block.timestamp) {
             return false;
         }
 
-        if(request.expiry > block.timestamp + MAX_EXPIRY) {
+        if (request.expiry > block.timestamp + MAX_EXPIRY) {
             return false;
         }
 
-        if(request.amount <= 0) {
+        if (request.amount <= 0) {
             return false;
         }
 
-        if(request.amountPerWithdrawal <= 0) {
+        if (request.amountPerWithdrawal <= 0) {
             return false;
         }
 

@@ -15,7 +15,11 @@ contract TestTokenDistributorSubmit is TestTokenDistributorSetup {
         super.setUp();
     }
 
-    function _getRequest(address _dispatcher, uint256 _deadline, uint256 _expiry) internal view returns (TokenDistributeSubmitRequest memory) {
+    function _getRequest(address _dispatcher, uint256 _deadline, uint256 _expiry)
+        internal
+        view
+        returns (TokenDistributeSubmitRequest memory)
+    {
         address tmpPublicKey = vm.addr(tmpPrivKey);
 
         return TokenDistributeSubmitRequest({
@@ -39,7 +43,8 @@ contract TestTokenDistributorSubmit is TestTokenDistributorSetup {
 
     // submit request
     function testSubmitRequest() public {
-        TokenDistributeSubmitRequest memory request = _getRequest(address(distributor), block.timestamp + 100, block.timestamp + 100);
+        TokenDistributeSubmitRequest memory request =
+            _getRequest(address(distributor), block.timestamp + 100, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
 
@@ -54,7 +59,8 @@ contract TestTokenDistributorSubmit is TestTokenDistributorSetup {
 
     // fails to submit if invalid signature
     function testCannotSubmitRequestIfInvalidSignature() public {
-        TokenDistributeSubmitRequest memory request = _getRequest(address(distributor), block.timestamp + 100, block.timestamp + 100);
+        TokenDistributeSubmitRequest memory request =
+            _getRequest(address(distributor), block.timestamp + 100, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey2);
 
@@ -66,7 +72,8 @@ contract TestTokenDistributorSubmit is TestTokenDistributorSetup {
 
     // fails to submit if invalid dispatcher
     function testCannotSubmitRequestIfInvalidDispatcher() public {
-        TokenDistributeSubmitRequest memory request = _getRequest(address(0), block.timestamp + 100, block.timestamp + 100);
+        TokenDistributeSubmitRequest memory request =
+            _getRequest(address(0), block.timestamp + 100, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey2);
 
@@ -76,10 +83,10 @@ contract TestTokenDistributorSubmit is TestTokenDistributorSetup {
         distributor.submit(request, sig);
     }
 
-
     // fails to submit if request already exists
     function testCannotSubmitRequestIfAlreadyExists() public {
-        TokenDistributeSubmitRequest memory request = _getRequest(address(distributor), block.timestamp + 100, block.timestamp + 100);
+        TokenDistributeSubmitRequest memory request =
+            _getRequest(address(distributor), block.timestamp + 100, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
 
@@ -113,7 +120,8 @@ contract TestTokenDistributorSubmit is TestTokenDistributorSetup {
     function testCannotSubmitRequestIfInvalidExpiry() public {
         vm.warp(block.timestamp + 1000);
 
-        TokenDistributeSubmitRequest memory request = _getRequest(address(distributor), block.timestamp + 100, block.timestamp + 365 days);
+        TokenDistributeSubmitRequest memory request =
+            _getRequest(address(distributor), block.timestamp + 100, block.timestamp + 365 days);
 
         bytes memory sig = _sign(request, privateKey);
 
@@ -127,7 +135,8 @@ contract TestTokenDistributorSubmit is TestTokenDistributorSetup {
 
     // fails to submit if deadline passed
     function testCannotSubmitIfDeadlinePassed() public {
-        TokenDistributeSubmitRequest memory request = _getRequest(address(distributor), block.timestamp - 1, block.timestamp + 100);
+        TokenDistributeSubmitRequest memory request =
+            _getRequest(address(distributor), block.timestamp - 1, block.timestamp + 100);
 
         bytes memory sig = _sign(request, privateKey);
 

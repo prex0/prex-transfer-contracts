@@ -15,11 +15,10 @@ contract MultiFacilitatorsUpgradable is OwnableUpgradeable {
 
     error CallerIsNotFacilitator();
 
-    constructor() {
-    }
+    constructor() {}
 
-    modifier onlyFacilitators {
-        if(!facilitators[msg.sender]) {
+    modifier onlyFacilitators() {
+        if (!facilitators[msg.sender]) {
             revert CallerIsNotFacilitator();
         }
 
@@ -32,7 +31,7 @@ contract MultiFacilitatorsUpgradable is OwnableUpgradeable {
      */
     function __MultiFacilitators_init(address admin) internal onlyInitializing {
         __Ownable_init();
-        
+
         _transferOwnership(admin);
 
         facilitators[admin] = true;

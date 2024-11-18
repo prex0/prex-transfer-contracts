@@ -57,7 +57,8 @@ contract TestTokenDistributorValidation is TestTokenDistributorSetup {
     function testDistribute() public {
         token.mint(recipient, 1);
 
-        RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+        RecipientData memory recipientData =
+            _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.startPrank(facilitator);
 
@@ -72,7 +73,8 @@ contract TestTokenDistributorValidation is TestTokenDistributorSetup {
     function testCannotDistributeIfInvalidAdditionalValidation() public {
         vm.startPrank(facilitator);
 
-        RecipientData memory recipientData = _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
+        RecipientData memory recipientData =
+            _getRecipientData(requestId, 0, block.timestamp + EXPIRY_UNTIL, recipient, tmpPrivKey);
 
         vm.expectRevert(TokenDistributor.InvalidAdditionalValidation.selector);
         distributor.distribute(recipientData);

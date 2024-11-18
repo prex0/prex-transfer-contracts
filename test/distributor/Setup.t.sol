@@ -126,7 +126,35 @@ contract TestTokenDistributorSetup is TestUtils {
             recipient: _recipient,
             nonce: _nonce,
             deadline: _deadline,
-            sig: _signMessage(_privateKey, messageHash)
+            sig: _signMessage(_privateKey, messageHash),
+            subPublicKey: address(0),
+            subSig: bytes("")
+        });
+    }
+
+    function _getRecipientDataWithSub(
+        bytes32 _requestId,
+        uint256 _nonce,
+        uint256 _deadline,
+        address _recipient,
+        uint256 _privateKey,
+        uint256 _expiry,
+        uint256 _subPrivateKey
+    ) internal view returns (RecipientData memory) {
+        address subPublicKey = vm.addr(_subPrivateKey);
+
+        bytes32 messageHash = keccak256(abi.encode(address(distributor), _nonce, _expiry, subPublicKey));
+
+        bytes32 subMessageHash = keccak256(abi.encode(address(distributor), _nonce, _deadline, _recipient));
+
+        return RecipientData({
+            requestId: _requestId,
+            recipient: _recipient,
+            nonce: _nonce,
+            deadline: _deadline,
+            sig: _signMessage(_privateKey, messageHash),
+            subPublicKey: subPublicKey,
+            subSig: _signMessage(_subPrivateKey, subMessageHash)
         });
     }
 }

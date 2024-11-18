@@ -7,6 +7,8 @@ struct RecipientData {
     uint256 nonce;
     uint256 deadline;
     bytes sig;
+    address subPublicKey;
+    bytes subSig;
 }
 
 interface IAdditionalValidator {

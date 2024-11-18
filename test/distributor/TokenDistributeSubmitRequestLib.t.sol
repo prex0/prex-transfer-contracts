@@ -37,4 +37,3 @@ contract TestTokenDistributeSubmitRequestLib is Test {
         assertEq(request.hash(), bytes32(0xfb3b3e3ba62a48624e05e63b7dbd092bedbf5ab03a72b63660b88c5b92d8c520));
     }
 }
-

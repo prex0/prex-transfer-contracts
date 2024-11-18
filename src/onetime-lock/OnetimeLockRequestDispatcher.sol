@@ -71,22 +71,26 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
      * @notice Submits a new transfer request.
      * This function is executed by the sender after they receive the signature from the recipient.
      */
-    function submitRequest(TransferWithSecretRequest memory request, bytes memory sig) nonReentrant onlyFacilitators external {
+    function submitRequest(TransferWithSecretRequest memory request, bytes memory sig)
+        external
+        nonReentrant
+        onlyFacilitators
+    {
         bytes32 id = request.getId();
 
         if (pendingRequests[id].status != RequestStatus.NotSubmitted) {
             revert RequestAlreadyExists();
         }
 
-        if(request.deadline == 0) {
+        if (request.deadline == 0) {
             revert InvalidDeadline();
         }
 
-        if(request.deadline > block.timestamp + MAX_EXPIRY) {
+        if (request.deadline > block.timestamp + MAX_EXPIRY) {
             revert InvalidDeadline();
         }
 
-        if(request.amount == 0) {
+        if (request.amount == 0) {
             revert InvalidAmount();
         }
 
@@ -109,7 +113,7 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
      * @notice Completes a pending request.
      * This function is executed by the recipient after they receive the secret from the sender.
      */
-    function completeRequest(bytes32 id, RecipientData memory recipientData) nonReentrant onlyFacilitators external {
+    function completeRequest(bytes32 id, RecipientData memory recipientData) external nonReentrant onlyFacilitators {
         PendingRequest storage request = pendingRequests[id];
 
         if (recipientData.recipient == address(0)) {
@@ -131,7 +135,7 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
         request.amount = 0;
         request.status = RequestStatus.Completed;
 
-        if(!ERC20(request.token).transfer(recipientData.recipient, amount)) {
+        if (!ERC20(request.token).transfer(recipientData.recipient, amount)) {
             revert TransferFailed();
         }
 
@@ -141,7 +145,7 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
     /**
      * @notice Cancels pending requests.
      */
-    function batchCancelRequest(bytes32[] memory ids) nonReentrant onlyFacilitators external {
+    function batchCancelRequest(bytes32[] memory ids) external nonReentrant onlyFacilitators {
         for (uint256 i = 0; i < ids.length; i++) {
             cancelRequest(ids[i]);
         }
@@ -165,7 +169,7 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
         request.amount = 0;
         request.status = RequestStatus.Cancelled;
 
-        if(!ERC20(request.token).transfer(request.sender, amount)) {
+        if (!ERC20(request.token).transfer(request.sender, amount)) {
             revert TransferFailed();
         }
 

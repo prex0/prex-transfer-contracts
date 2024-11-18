@@ -12,12 +12,7 @@ contract DeployTransferWithSecretRequestDispatcher is Script {
 
     function setUp() public {}
 
-    function run()
-        public
-        returns (
-            TransferWithSecretRequestDispatcher dispatcher
-        )
-    {
+    function run() public returns (TransferWithSecretRequestDispatcher dispatcher) {
         vm.startBroadcast();
 
         dispatcher = new TransferWithSecretRequestDispatcher{

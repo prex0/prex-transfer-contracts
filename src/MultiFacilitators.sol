@@ -19,8 +19,8 @@ contract MultiFacilitators is Owned {
         facilitators[admin] = true;
     }
 
-    modifier onlyFacilitators {
-        if(!facilitators[msg.sender]) {
+    modifier onlyFacilitators() {
+        if (!facilitators[msg.sender]) {
             revert CallerIsNotFacilitator();
         }
 

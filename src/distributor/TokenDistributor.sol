@@ -46,6 +46,8 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
         bytes32 coordinate;
     }
 
+    mapping(address => bytes32) public publicKeyToRequestId;
+
     mapping(bytes32 => PendingRequest) public pendingRequests;
 
     /// @dev id => recipient => lastDistributedAt
@@ -80,6 +82,8 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
     error InvalidDispatcher();
     /// deadline passed
     error DeadlinePassed();
+    /// public key already exists
+    error PublicKeyAlreadyExists();
 
     /// invalid additional validation
     error InvalidAdditionalValidation();
@@ -88,6 +92,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
         bytes32 id,
         address token,
         address sender,
+        address publicKey,
         uint256 amount,
         uint256 amountPerWithdrawal,
         uint256 cooltime,
@@ -102,8 +107,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
     event RequestCancelled(bytes32 id, uint256 amount);
     event RequestExpired(bytes32 id, uint256 amount);
 
-    constructor() {
-    }
+    constructor() {}
 
     function initialize(address _permit2, address _admin) public initializer {
         __MultiFacilitators_init(_admin);
@@ -120,7 +124,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
     function submit(TokenDistributeSubmitRequest memory request, bytes memory sig) public onlyFacilitators {
         bytes32 id = request.hash();
 
-        if(!request.verify()) {
+        if (!request.verify()) {
             revert InvalidRequest();
         }
 
@@ -146,10 +150,17 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
             coordinate: request.coordinate
         });
 
+        if (publicKeyToRequestId[request.publicKey] != bytes32(0)) {
+            revert PublicKeyAlreadyExists();
+        }
+
+        publicKeyToRequestId[request.publicKey] = id;
+
         emit Submitted(
             id,
             request.token,
             request.sender,
+            request.publicKey,
             request.amount,
             request.amountPerWithdrawal,
             request.cooltime,
@@ -195,7 +206,8 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
      */
     function distribute(RecipientData memory recipientData) public onlyFacilitators {
         PendingRequest storage request = pendingRequests[recipientData.requestId];
-        CoolTimeLib.DistributionInfo storage info = distributionInfoMap[recipientData.requestId][recipientData.recipient];
+        CoolTimeLib.DistributionInfo storage info =
+            distributionInfoMap[recipientData.requestId][recipientData.recipient];
 
         if (block.timestamp > request.expiry) {
             revert RequestExpiredError();
@@ -207,13 +219,13 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
 
         info.validate(request.cooltime, request.maxAmountPerAddress);
 
-        if(request.additionalValidator != address(0)) {
-            if(!IAdditionalValidator(request.additionalValidator).verify(recipientData, request.additionalData)) {
+        if (request.additionalValidator != address(0)) {
+            if (!IAdditionalValidator(request.additionalValidator).verify(recipientData, request.additionalData)) {
                 revert InvalidAdditionalValidation();
             }
         }
 
-        _verifyRecipientSignature(request.publicKey, recipientData.nonce, recipientData.deadline, recipientData.recipient, recipientData.sig);
+        _verifyRecipientData(request.publicKey, request.expiry, recipientData);
 
         request.amount -= request.amountPerWithdrawal;
 
@@ -223,7 +235,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
         ERC20(request.token).transfer(recipientData.recipient, request.amountPerWithdrawal);
 
         emit Received(recipientData.requestId, recipientData.recipient, request.amountPerWithdrawal);
-    }    
+    }
 
     /**
      * @notice Cancel the request during distribution
@@ -272,7 +284,7 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
 
         request.status = RequestStatus.Completed;
 
-        if(leftAmount > 0) {
+        if (leftAmount > 0) {
             ERC20(request.token).transfer(request.sender, leftAmount);
         }
 
@@ -331,20 +343,44 @@ contract TokenDistributor is ReentrancyGuard, MultiFacilitatorsUpgradable {
     /**
      * @notice Verifies the signature made by the recipient using the private key received from the sender.
      */
-    function _verifyRecipientSignature(address publicKey, uint256 nonce, uint256 deadline, address recipient, bytes memory signature)
-        internal
-    {
-        if (nonceUsedMap[nonce]) {
+    function _verifyRecipientData(address publicKey, uint256 expiry, RecipientData memory recipientData) internal {
+        if (nonceUsedMap[recipientData.nonce]) {
             revert NonceUsed();
         }
 
-        nonceUsedMap[nonce] = true;
+        nonceUsedMap[recipientData.nonce] = true;
 
-        if (block.timestamp > deadline) {
+        if (block.timestamp > recipientData.deadline) {
             revert DeadlinePassed();
         }
 
-        bytes32 messageHash = ECDSA.toEthSignedMessageHash(keccak256(abi.encode(address(this), nonce, deadline, recipient)));
+        if (recipientData.subPublicKey != address(0)) {
+            _verifyRecipientSignature(
+                publicKey, recipientData.nonce, expiry, recipientData.subPublicKey, recipientData.sig
+            );
+            _verifyRecipientSignature(
+                recipientData.subPublicKey,
+                recipientData.nonce,
+                recipientData.deadline,
+                recipientData.recipient,
+                recipientData.subSig
+            );
+        } else {
+            _verifyRecipientSignature(
+                publicKey, recipientData.nonce, recipientData.deadline, recipientData.recipient, recipientData.sig
+            );
+        }
+    }
+
+    function _verifyRecipientSignature(
+        address publicKey,
+        uint256 nonce,
+        uint256 deadline,
+        address recipient,
+        bytes memory signature
+    ) internal view {
+        bytes32 messageHash =
+            ECDSA.toEthSignedMessageHash(keccak256(abi.encode(address(this), nonce, deadline, recipient)));
 
         if (publicKey != ECDSA.recover(messageHash, signature)) {
             revert InvalidSecret();

@@ -8,6 +8,7 @@ import "../../src/distributor/TokenDistributeSubmitRequest.sol";
 contract TestTokenDistributorDeposit is TestTokenDistributorSetup {
     using TokenDistributeSubmitRequestLib for TokenDistributeSubmitRequest;
     using TokenDistributeDepositRequestLib for TokenDistributeDepositRequest;
+
     TokenDistributeSubmitRequest internal request;
     bytes32 internal requestId;
 
@@ -67,7 +68,7 @@ contract TestTokenDistributorDeposit is TestTokenDistributorSetup {
         distributor.deposit(depositRequest, sig);
         assertEq(token.balanceOf(sender), MINT_AMOUNT - 2 * AMOUNT);
 
-        (uint256 amount, , , , , , , , , , , , ) = distributor.pendingRequests(requestId);
+        (uint256 amount,,,,,,,,,,,,) = distributor.pendingRequests(requestId);
 
         assertEq(amount, 2 * AMOUNT);
         assertEq(token.balanceOf(address(distributor)), 2 * AMOUNT);
