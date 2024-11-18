@@ -6,8 +6,27 @@ import "./Setup.t.sol";
 contract TestSubmit is TestOnetimeLockRequestDispatcher {
     using TransferWithSecretRequestLib for TransferWithSecretRequest;
 
+    uint256 privKeyAlreadyUsed = 11111000005;
+
     function setUp() public virtual override(TestOnetimeLockRequestDispatcher) {
         super.setUp();
+
+        address tmpPublicKey = vm.addr(privKeyAlreadyUsed);
+
+        TransferWithSecretRequest memory request = TransferWithSecretRequest({
+            dispatcher: address(ontimeLockDispatcher),
+            sender: sender,
+            deadline: block.timestamp + 1000,
+            nonce: 100,
+            amount: 100,
+            token: address(token),
+            publicKey: tmpPublicKey,
+            metadata: ""
+        });
+
+        bytes memory sig = _sign(request, privateKey);
+
+        ontimeLockDispatcher.submitRequest(request, sig);
     }
 
     function testSubmit() public {
@@ -76,6 +95,26 @@ contract TestSubmit is TestOnetimeLockRequestDispatcher {
         bytes memory sig = _sign(request, privateKey);
 
         vm.expectRevert(OnetimeLockRequestDispatcher.InvalidAmount.selector);
+        ontimeLockDispatcher.submitRequest(request, sig);
+    }
+
+    function testCannotSubmitIfSamePublicKeyIsUsed() public {
+        address tmpPublicKey = vm.addr(privKeyAlreadyUsed);
+
+        TransferWithSecretRequest memory request = TransferWithSecretRequest({
+            dispatcher: address(ontimeLockDispatcher),
+            sender: sender,
+            deadline: block.timestamp + 1000,
+            nonce: 0,
+            amount: 100,
+            token: address(token),
+            publicKey: tmpPublicKey,
+            metadata: ""
+        });
+
+        bytes memory sig = _sign(request, privateKey);
+
+        vm.expectRevert(OnetimeLockRequestDispatcher.PublicKeyAlreadyExists.selector);
         ontimeLockDispatcher.submitRequest(request, sig);
     }
 
