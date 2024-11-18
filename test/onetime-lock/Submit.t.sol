@@ -114,7 +114,7 @@ contract TestSubmit is TestOnetimeLockRequestDispatcher {
 
         bytes memory sig = _sign(request, privateKey);
 
-        vm.expectRevert(OnetimeLockRequestDispatcher.PublicKeyAlreadyExists.selector);
+        vm.expectRevert(OnetimeLockRequestDispatcher.RequestAlreadyExists.selector);
         ontimeLockDispatcher.submitRequest(request, sig);
     }
 

@@ -35,8 +35,6 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
         RequestStatus status;
     }
 
-    mapping(address => bytes32) public publicKeyToRequestId;
-
     mapping(bytes32 => PendingRequest) public pendingRequests;
 
     uint256 private constant MAX_EXPIRY = 180 days;
@@ -66,8 +64,6 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
     error DeadlinePassed();
     /// @notice The transfer failed
     error TransferFailed();
-    /// @notice The public key already exists
-    error PublicKeyAlreadyExists();
 
     struct RecipientData {
         address recipient;
@@ -94,8 +90,9 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
         nonReentrant
         onlyFacilitators
     {
-        bytes32 id = request.getId();
+        bytes32 id = keccak256(abi.encode(request.publicKey));
 
+        // same public key cannot be used for multiple requests
         if (pendingRequests[id].status != RequestStatus.NotSubmitted) {
             revert RequestAlreadyExists();
         }
@@ -125,13 +122,6 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
             expiry: request.deadline,
             status: RequestStatus.Pending
         });
-
-        // same public key cannot be used for multiple requests
-        if (publicKeyToRequestId[request.publicKey] != bytes32(0)) {
-            revert PublicKeyAlreadyExists();
-        }
-
-        publicKeyToRequestId[request.publicKey] = id;
 
         emit RequestSubmitted(id, request.token, request.sender, request.amount, request.deadline, request.metadata);
     }
@@ -205,8 +195,13 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
         emit RequestCancelled(id);
     }
 
-    function getRequestId(TransferWithSecretRequest memory request) external view returns (bytes32) {
-        return request.getId();
+    /**
+     * @notice Returns the request ID for a given request.
+     * @param request The request
+     * @return id The request ID
+     */
+    function getRequestId(TransferWithSecretRequest memory request) external pure returns (bytes32) {
+        return keccak256(abi.encode(request.publicKey));
     }
 
     /**
