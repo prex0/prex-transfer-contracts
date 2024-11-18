@@ -29,9 +29,15 @@ contract Manager is Owned {
      * @param _newOwner The address of the new owner.
      */
     function transferOwnershipOfContracts(address _newOwner) public onlyOwner {
-        onetimeLock.transferOwnership(_newOwner);
-        distribution.transferOwnership(_newOwner);
-        swap.transferOwnership(_newOwner);
+        if (address(onetimeLock) != address(0)) {
+            onetimeLock.transferOwnership(_newOwner);
+        }
+        if (address(distribution) != address(0)) {
+            distribution.transferOwnership(_newOwner);
+        }
+        if (address(swap) != address(0)) {
+            swap.transferOwnership(_newOwner);
+        }
     }
 
     /**
@@ -55,14 +61,26 @@ contract Manager is Owned {
     }
 
     function addFacilitator(address _facilitator) internal {
-        onetimeLock.addFacilitator(_facilitator);
-        distribution.addFacilitator(_facilitator);
-        swap.addFacilitator(_facilitator);
+        if (address(onetimeLock) != address(0)) {
+            onetimeLock.addFacilitator(_facilitator);
+        }
+        if (address(distribution) != address(0)) {
+            distribution.addFacilitator(_facilitator);
+        }
+        if (address(swap) != address(0)) {
+            swap.addFacilitator(_facilitator);
+        }
     }
 
     function removeFacilitator(address _facilitator) internal {
-        onetimeLock.removeFacilitator(_facilitator);
-        distribution.removeFacilitator(_facilitator);
-        swap.removeFacilitator(_facilitator);
+        if (address(onetimeLock) != address(0)) {
+            onetimeLock.removeFacilitator(_facilitator);
+        }
+        if (address(distribution) != address(0)) {
+            distribution.removeFacilitator(_facilitator);
+        }
+        if (address(swap) != address(0)) {
+            swap.removeFacilitator(_facilitator);
+        }
     }
 }

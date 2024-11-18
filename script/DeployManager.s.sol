@@ -7,9 +7,11 @@ import {Manager} from "src/Manager.sol";
 
 contract DeployManager is Script {
     address public FACILITATOR_ADMIN = address(0x51B89C499F3038756Eff64a0EF52d753147EAd75);
-    address public ONETIME_LOCK = address(0xc64c22220ca22D9E499719230100e5dc7E1D4f89);
-    address public DISTRIBUTION = address(0xcb6a2184A2259040476CEDd111cA0513492E47D0);
+    address public ONETIME_LOCK = address(0x7bB6682bAe76b8a394F9Ed2812A2968182814804);
+    address public DISTRIBUTION = address(0x1bDF9c09D05F660C91e334df9ce531B2B3CE6e1d);
     address public SWAP = address(0x0C4A9411B6c896390faBc295fbb472DB7B399aEC);
+    // for arbitrum sepolia
+    // address public SWAP = address(0);
 
     function setUp() public {}
 
