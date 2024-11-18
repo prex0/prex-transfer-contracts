@@ -41,16 +41,28 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
 
     IPermit2 immutable permit2;
 
+    // Request errors
+    /// @notice The request already exists
     error RequestAlreadyExists();
+    /// @notice The request has expired
     error RequestExpired();
+    /// @notice The request has not expired
     error RequestNotExpired();
+    /// @notice The request is not pending
     error RequestIsNotPending();
+    /// @notice The recipient is not set
     error RecipientNotSet();
+    /// @notice The secret is invalid
     error InvalidSecret();
+    /// @notice The dispatcher is invalid
     error InvalidDispatcher();
+    /// @notice The deadline is invalid
     error InvalidDeadline();
+    /// @notice The amount is invalid
     error InvalidAmount();
+    /// @notice The deadline has passed
     error DeadlinePassed();
+    /// @notice The transfer failed
     error TransferFailed();
 
     struct RecipientData {
@@ -69,15 +81,18 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
 
     /**
      * @notice Submits a new transfer request.
-     * This function is executed by the sender after they receive the signature from the recipient.
+     * The submitter's signature is verified by Permit2
+     * @param request The transfer request
+     * @param sig The submitter's signature
      */
     function submitRequest(TransferWithSecretRequest memory request, bytes memory sig)
         external
         nonReentrant
         onlyFacilitators
     {
-        bytes32 id = request.getId();
+        bytes32 id = keccak256(abi.encode(request.publicKey));
 
+        // same public key cannot be used for multiple requests
         if (pendingRequests[id].status != RequestStatus.NotSubmitted) {
             revert RequestAlreadyExists();
         }
@@ -86,6 +101,7 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
             revert InvalidDeadline();
         }
 
+        // Expiry period longer than 180 days is invalid
         if (request.deadline > block.timestamp + MAX_EXPIRY) {
             revert InvalidDeadline();
         }
@@ -94,6 +110,7 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
             revert InvalidAmount();
         }
 
+        // Verify the signature
         _verifySenderRequest(request, sig);
 
         pendingRequests[id] = PendingRequest({
@@ -112,6 +129,8 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
     /**
      * @notice Completes a pending request.
      * This function is executed by the recipient after they receive the secret from the sender.
+     * @param id The request ID
+     * @param recipientData The recipient data
      */
     function completeRequest(bytes32 id, RecipientData memory recipientData) external nonReentrant onlyFacilitators {
         PendingRequest storage request = pendingRequests[id];
@@ -176,8 +195,13 @@ contract OnetimeLockRequestDispatcher is ReentrancyGuard, MultiFacilitators {
         emit RequestCancelled(id);
     }
 
-    function getRequestId(TransferWithSecretRequest memory request) external view returns (bytes32) {
-        return request.getId();
+    /**
+     * @notice Returns the request ID for a given request.
+     * @param request The request
+     * @return id The request ID
+     */
+    function getRequestId(TransferWithSecretRequest memory request) external pure returns (bytes32) {
+        return keccak256(abi.encode(request.publicKey));
     }
 
     /**
